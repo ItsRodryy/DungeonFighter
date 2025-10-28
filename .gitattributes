@@ -1,0 +1,20 @@
+# Normaliza a LF en el repo y quita avisos
+* text=auto eol=lf
+
+# Archivos de Unity en texto
+*.cs      text eol=lf
+*.shader  text eol=lf
+*.cginc   text eol=lf
+*.hlsl    text eol=lf
+*.json    text eol=lf
+*.yaml    text eol=lf
+*.yml     text eol=lf
+*.asmdef  text eol=lf
+*.unity   text eol=lf
+*.prefab  text eol=lf
+*.meta    text eol=lf
+*.md      text eol=lf
+
+# Scripts
+*.sh      text eol=lf
+*.bat     text eol=crlf
