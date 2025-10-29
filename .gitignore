@@ -1,95 +1,32 @@
-# --- Unity generados/pesados ---
-/[Ll]ibrary/
-/[Tt]emp/
-/[Oo]bj/
-/[Bb]uild/
-/[Bb]uilds/
-/[Ll]ogs/
-/[Uu]ser[Ss]ettings/
-/[Bb]ee/                 # Pipeline de build nuevo
-/[Pp]ackage[Cc]ache/     # Cache de paquetes
+# --- Unity en subcarpeta ---
+/UnityProject/[Ll]ibrary/
+/UnityProject/[Tt]emp/
+/UnityProject/[Oo]bj/
+/UnityProject/[Bb]uild/
+/UnityProject/[Bb]uilds/
+/UnityProject/[Ll]ogs/
+/UnityProject/[Uu]ser[Ss]ettings/
+/UnityProject/[Bb]ee/
+/UnityProject/[Pp]ackage[Cc]ache/
+/UnityProject/[Mm]emoryCaptures/
+/UnityProject/[Rr]ecordings/
+/UnityProject/[Cc]rashReports/
 
-# Capturas y grabaciones
-/[Mm]emoryCaptures/
-/[Rr]ecordings/
-/[Cc]rashReports/
+# IDEs
+/.idea/
+/.vs/
+/UnityProject/*.sln
+/UnityProject/*.csproj
 
-# Addressables
-/ServerData
-/[Aa]ssets/StreamingAssets/aa*
-/[Aa]ssets/AddressableAssetsData/link.xml*
-/[Aa]ssets/Addressables_Temp*
-/[Aa]ssets/AddressableAssetsData/*/*.bin*
-
-# Visual Scripting auto-generado
-/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Flow/UnitOptions.db
-/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Flow/UnitOptions.db.meta
-/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers
-/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers.meta
-
-# Test Runner (escenas auto-generadas)
-/[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
-
-# --- IDEs / proyectos ---
-.vs/
-.gradle/
-.consulo/
-.idea/
-.vscode/
-[Aa]ssets/Plugins/Editor/JetBrains*
-*.DotSettings.user
-
-# --- Archivos de solución/proyecto auto-generados ---
-ExportedObj/
-*.csproj
-*.unityproj
-*.sln
-*.suo
-*.tmp
-*.user
-*.userprefs
-*.pidb
-*.booproj
-*.svd
-*.pdb
-*.mdb
-*.opendb
-*.VC.db
-
-# Meta generados por Unity en crashes
-*.pidb.meta
-*.pdb.meta
-*.mdb.meta
-sysinfo.txt
-mono_crash.*
-
-# --- Builds exportadas (ignora solo dentro de carpetas de build) ---
-/[Bb]uild*/**/*
-/build*/**/*
-
-# --- OS ---
+# SO
 .DS_Store
 Thumbs.db
-desktop.ini
-
-# --- Colab/Plastic ---
-.collab/
-.plastic/
-PlasticSCM/
 
 # --- Firebase (PC) ---
-# Para PC no usamos los JSON/PLIST de Android/iOS.
-# Si más adelante compilas a móvil, borra estas líneas.
-[Aa]ssets/StreamingAssets/google-services.json
-[Aa]ssets/StreamingAssets/google-services-desktop.json
-GoogleService-Info.plist
+/UnityProject/Assets/StreamingAssets/google-services.json
+/UnityProject/Assets/StreamingAssets/google-services-desktop.json
+UnityProject/GoogleService-Info.plist
 
-# --- Opcional: TextMeshPro ---
-# Descomenta si no quieres subir atlases autogenerados:
-# Assets/TextMesh Pro/*/Resources/Font Assets/*/*.fnt
-# Assets/TextMesh Pro/*/Resources/Font Assets/*/*.png
-
-# --- Asegurar metas y paquetes ---
-!*.meta
-Packages/manifest.temp.json
-/Assets/Firebase/
+# Opcional
+/UnityProject/Assets/TextMesh Pro/*/Resources/Font Assets/*/*.fnt
+/UnityProject/Assets/TextMesh Pro/*/Resources/Font Assets/*/*.png
