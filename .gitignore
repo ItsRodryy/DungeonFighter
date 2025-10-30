@@ -11,22 +11,35 @@
 /UnityProject/[Mm]emoryCaptures/
 /UnityProject/[Rr]ecordings/
 /UnityProject/[Cc]rashReports/
+# Addressables (si los usas)
+#/UnityProject/Library/com.unity.addressables/
+#/UnityProject/Assets/AddressableAssetsData/*/Windows/
 
-# IDEs
-/.idea/
+# --- IDEs / índices ---
 /.vs/
+**/.vs/                      # por si hubiera otra .vs en subcarpetas
+**/*.vsidx                   # índices de VS que dan "Permission denied"
+/.idea/
+/.vscode/
+
+# --- Proyectos C# generados por Unity/VS ---
 /UnityProject/*.sln
 /UnityProject/*.csproj
+/UnityProject/*.user
+/UnityProject/*.userprefs
+/UnityProject/*.pidb
+/UnityProject/*.mdb
+/UnityProject/*.opendb
 
-# SO
+# --- SO ---
 .DS_Store
 Thumbs.db
 
 # --- Firebase (PC) ---
 /UnityProject/Assets/StreamingAssets/google-services.json
 /UnityProject/Assets/StreamingAssets/google-services-desktop.json
-UnityProject/GoogleService-Info.plist
+/UnityProject/GoogleService-Info.plist
 
-# Opcional
+# --- TextMeshPro auto ---
 /UnityProject/Assets/TextMesh Pro/*/Resources/Font Assets/*/*.fnt
 /UnityProject/Assets/TextMesh Pro/*/Resources/Font Assets/*/*.png
