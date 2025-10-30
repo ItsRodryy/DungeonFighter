@@ -18,17 +18,29 @@ public class FirestoreCliente : MonoBehaviour
     string DocUrl(string col, string id) =>
         $"https://firestore.googleapis.com/v1/projects/{ajustes.projectId}/databases/(default)/documents/{col}/{id}";
 
-    // Modelo de datos del juego
+    // ------------------ MODELOS ------------------
+
+    [System.Serializable]
+    public class UsuarioPerfil
+    {
+        public string email;
+        public string nombreUsuario;
+        public bool esAdmin;
+    }
+
     [System.Serializable] public class DatosJugador { public int vida, vidaMaxima; public float posX, posY; public string nombreEscena; }
     [System.Serializable] public class DatosInventario { public int monedas, llaves, pociones; }
     [System.Serializable] public class EstadoMundo { public List<string> enemigosEliminados; public List<string> cofresAbiertos; }
-    [System.Serializable] public class PartidaGuardada
+    [System.Serializable]
+    public class PartidaGuardada
     {
         public string nombrePartida;
         public DatosJugador datosJugador;
         public DatosInventario datosInventario;
         public EstadoMundo estadoMundo;
     }
+
+    // ------------------ CORE HTTP ------------------
 
     // Enviar JSON con UnityWebRequest
     async Task<string> EnviarJsonAsync(string url, string metodo, string json, string idToken = null)
@@ -53,6 +65,45 @@ public class FirestoreCliente : MonoBehaviour
 
         return req.downloadHandler.text;
     }
+
+    // ------------------ USUARIOS ------------------
+
+    // Crea/actualiza /usuarios/{uid} con el perfil básico (esAdmin SIEMPRE false desde cliente)
+    public async Task UpsertUsuarioAsync(string idToken, string uid, string email, string nombreUsuario)
+    {
+        var url = DocUrl("usuarios", uid);
+        var payload = new
+        {
+            fields = new
+            {
+                email = new { stringValue = email },
+                nombreUsuario = new { stringValue = nombreUsuario },
+                fechaCreacion = new { timestampValue = System.DateTime.UtcNow.ToString("o") },
+                esAdmin = new { booleanValue = false } // el rol lo cambias tú en la consola
+            }
+        };
+        var body = JsonConvert.SerializeObject(payload);
+        await EnviarJsonAsync(url, "PATCH", body, idToken);
+    }
+
+    // Lee /usuarios/{uid} y devuelve el perfil (incluye esAdmin)
+    public async Task<UsuarioPerfil> GetUsuarioPerfilAsync(string idToken, string uid)
+    {
+        var url = DocUrl("usuarios", uid);
+        var txt = await EnviarJsonAsync(url, UnityWebRequest.kHttpVerbGET, null, idToken);
+
+        var doc = JObject.Parse(txt);
+        var f = doc["fields"] ?? throw new System.Exception("Usuario sin 'fields'");
+
+        return new UsuarioPerfil
+        {
+            email = GetString(f, "email"),
+            nombreUsuario = GetString(f, "nombreUsuario"),
+            esAdmin = (bool?)f["esAdmin"]?["booleanValue"] ?? false
+        };
+    }
+
+    // ------------------ PARTIDAS ------------------
 
     // Convierte nuestro objeto C# al formato de Firestore REST
     object ToFirestore(PartidaGuardada p) => new
@@ -173,25 +224,70 @@ public class FirestoreCliente : MonoBehaviour
         return p;
     }
 
-    // Crea/actualiza /usuarios/{uid} con el perfil básico
-    public async Task UpsertUsuarioAsync(string idToken, string uid, string email, string nombreUsuario, bool esAdmin = false)
+    // --------- Funciones para el panel Admin ---------
+
+    // Lista partidas de todos (para admin)
+    public async Task<List<(string uid, PartidaGuardada partida)>> ListarPartidasAsync(string idToken, int pageSize = 50)
     {
-        var url = DocUrl("usuarios", uid);
-        var payload = new
+        var url = $"https://firestore.googleapis.com/v1/projects/{ajustes.projectId}/databases/(default)/documents:runQuery";
+        var bodyObj = new
         {
-            fields = new
+            structuredQuery = new
             {
-                email = new { stringValue = email },
-                nombreUsuario = new { stringValue = nombreUsuario },
-                fechaCreacion = new { timestampValue = System.DateTime.UtcNow.ToString("o") },
-                esAdmin = new { booleanValue = esAdmin }
+                from = new[] { new { collectionId = "partidasGuardadas" } },
+                limit = pageSize
             }
         };
-        var body = JsonConvert.SerializeObject(payload);
-        await EnviarJsonAsync(url, "PATCH", body, idToken);
+        var body = JsonConvert.SerializeObject(bodyObj);
+        var txt = await EnviarJsonAsync(url, UnityWebRequest.kHttpVerbPOST, body, idToken);
+
+        var arr = JArray.Parse(txt);
+        var list = new List<(string, PartidaGuardada)>();
+        foreach (var r in arr)
+        {
+            var doc = r["document"];
+            if (doc == null) continue;
+            var name = doc["name"]?.ToString(); // .../documents/partidasGuardadas/{uid}
+            var uid = name?.Substring(name.LastIndexOf('/') + 1);
+            var f = doc["fields"];
+            if (f == null) continue;
+
+            var p = new PartidaGuardada
+            {
+                nombrePartida = GetString(f, "nombrePartida"),
+                datosJugador = new DatosJugador
+                {
+                    vida = GetInt(f["datosJugador"]?["mapValue"]?["fields"], "vida"),
+                    vidaMaxima = GetInt(f["datosJugador"]?["mapValue"]?["fields"], "vidaMaxima"),
+                    posX = GetFloat(f["datosJugador"]?["mapValue"]?["fields"], "posX"),
+                    posY = GetFloat(f["datosJugador"]?["mapValue"]?["fields"], "posY"),
+                    nombreEscena = GetString(f["datosJugador"]?["mapValue"]?["fields"], "nombreEscena")
+                },
+                datosInventario = new DatosInventario
+                {
+                    monedas = GetInt(f["datosInventario"]?["mapValue"]?["fields"], "monedas"),
+                    llaves = GetInt(f["datosInventario"]?["mapValue"]?["fields"], "llaves"),
+                    pociones = GetInt(f["datosInventario"]?["mapValue"]?["fields"], "pociones")
+                },
+                estadoMundo = new EstadoMundo
+                {
+                    enemigosEliminados = GetArrayStrings(f["estadoMundo"]?["mapValue"]?["fields"], "enemigosEliminados"),
+                    cofresAbiertos = GetArrayStrings(f["estadoMundo"]?["mapValue"]?["fields"], "cofresAbiertos")
+                }
+            };
+            list.Add((uid, p));
+        }
+        return list;
     }
 
-    // Helpers para leer tipos de Firestore REST
+    // Elimina la partida de un uid (para admin)
+    public async Task EliminarPartidaAsync(string idToken, string uid)
+    {
+        var url = DocUrl("partidasGuardadas", uid);
+        await EnviarJsonAsync(url, UnityWebRequest.kHttpVerbDELETE, null, idToken);
+    }
+
+    // ------------------ HELPERS ------------------
 
     static string GetString(JToken parent, string name)
         => parent?[name]?["stringValue"]?.ToString() ?? "";

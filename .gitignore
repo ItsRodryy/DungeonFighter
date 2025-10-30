@@ -43,3 +43,7 @@ Thumbs.db
 # --- TextMeshPro auto ---
 /UnityProject/Assets/TextMesh Pro/*/Resources/Font Assets/*/*.fnt
 /UnityProject/Assets/TextMesh Pro/*/Resources/Font Assets/*/*.png
+
+UnityProject/.vs/
+**/.vs/
+**/*.vsidx

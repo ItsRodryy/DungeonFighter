@@ -42,7 +42,20 @@ public class FirebaseAuthCliente : MonoBehaviour
         await tcs.Task;
 
         if (req.result != UnityWebRequest.Result.Success)
-            throw new System.Exception($"{metodo} {url} -> {req.responseCode}: {req.error} {req.downloadHandler.text}");
+        {
+            string detalle = req.downloadHandler != null ? req.downloadHandler.text : "";
+            string firebaseMsg = "";
+            try
+            {
+                // Extrae el mensaje estándar de Firebase: { error: { message: "XXXX" } }
+                var o = JsonConvert.DeserializeObject<dynamic>(detalle);
+                firebaseMsg = (string)o.error.message;
+            }
+            catch { }
+            var msg = $"{req.responseCode}: {(string.IsNullOrEmpty(firebaseMsg) ? req.error : firebaseMsg)}";
+            Debug.LogError("FirebaseAuth ERROR => " + msg + " | detalle=" + detalle);
+            throw new System.Exception(msg);
+        }
 
         return req.downloadHandler.text;
     }
