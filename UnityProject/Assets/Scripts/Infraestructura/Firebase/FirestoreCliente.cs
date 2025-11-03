@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 // Cliente REST para Firestore.
 // Colecciones:
-// - usuarios/{uid} -> email, nombreUsuario, fechaCreacion, esAdmin
+// - usuarios/{uid} -> email, nombreUsuario, fechaCreacion, esAdmin, activo
 // - partidasGuardadas/{uid} -> nombrePartida, ultimaActualizacion, datosJugador, datosInventario, estadoMundo
 public class FirestoreCliente : MonoBehaviour
 {
@@ -68,8 +68,8 @@ public class FirestoreCliente : MonoBehaviour
 
     // ------------------ USUARIOS ------------------
 
-    // Crea/actualiza /usuarios/{uid} con el perfil básico (esAdmin SIEMPRE false desde cliente)
-    public async Task UpsertUsuarioAsync(string idToken, string uid, string email, string nombreUsuario)
+    // Crea/actualiza /usuarios/{uid} con el perfil básico y el ROL indicado
+    public async Task UpsertUsuarioAsync(string idToken, string uid, string email, string nombreUsuario, bool esAdmin)
     {
         var url = DocUrl("usuarios", uid);
         var payload = new
@@ -77,9 +77,10 @@ public class FirestoreCliente : MonoBehaviour
             fields = new
             {
                 email = new { stringValue = email },
-                nombreUsuario = new { stringValue = nombreUsuario },
+                nombreUsuario = new { stringValue = nombreUsuario ?? "" },
                 fechaCreacion = new { timestampValue = System.DateTime.UtcNow.ToString("o") },
-                esAdmin = new { booleanValue = false } // el rol lo cambias tú en la consola
+                esAdmin = new { booleanValue = esAdmin },
+                activo = new { booleanValue = true }
             }
         };
         var body = JsonConvert.SerializeObject(payload);

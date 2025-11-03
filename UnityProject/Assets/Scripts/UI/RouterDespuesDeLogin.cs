@@ -1,6 +1,3 @@
 using UnityEngine;
 
-public class RouterDespuesDeLogin
-{
-    
-}
+public class RouterDespuesDeLogin { }

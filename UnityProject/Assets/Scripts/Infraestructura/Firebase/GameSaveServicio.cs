@@ -20,16 +20,20 @@ public class GameSaveServicio : MonoBehaviour
         return true;
     }
 
-    // Registro: crea usuario y su documento en /usuarios/{uid} con esAdmin=false
-    public async Task<bool> RegistroAsync(string correo, string pass, string nombreUsuario)
+    // Registro (NUEVO): crea usuario y su documento con el rol indicado
+    public async Task<bool> RegistroAsync(string correo, string pass, string nombreUsuario, bool esAdmin)
     {
         var r = await auth.RegistrarseAsync(correo, pass);
         IdToken = r.idToken;
         Uid = r.localId;
 
-        await firestore.UpsertUsuarioAsync(IdToken, Uid, correo, nombreUsuario); // sin esAdmin en el cliente
+        await firestore.UpsertUsuarioAsync(IdToken, Uid, correo, nombreUsuario, esAdmin);
         return true;
     }
+
+    // Overload para no romper llamadas antiguas (por ej. PruebaConexion)
+    public Task<bool> RegistroAsync(string correo, string pass, string nombreUsuario)
+        => RegistroAsync(correo, pass, nombreUsuario, false);
 
     // Guarda/Carga sobre /partidasGuardadas/{uid} (un único guardado por usuario)
     public Task GuardarAsync(FirestoreCliente.PartidaGuardada p) => firestore.GuardarPartidaAsync(IdToken, Uid, p);

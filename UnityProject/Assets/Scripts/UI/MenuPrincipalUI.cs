@@ -26,21 +26,12 @@ public class MenuPrincipalUI : MonoBehaviour
     public TMP_Text txtListado;
     public Button btnCerrarSesionAdmin;
 
-    async void Start()
+    private async void Start()
     {
-        if (!gameSave)
-            gameSave = FindObjectOfType<GameSaveServicio>();
-
+        if (!gameSave) gameSave = Object.FindFirstObjectByType<GameSaveServicio>();
         if (gameSave == null || string.IsNullOrEmpty(gameSave.Uid) || string.IsNullOrEmpty(gameSave.IdToken))
         {
-            Debug.LogWarning("No hay sesión cargada. Volviendo a LoginRegistro.");
-            UnityEngine.SceneManagement.SceneManager.LoadScene("LoginRegistro");
-            return;
-        }
-
-        if (!gameSave)
-        {
-            Debug.LogError("MenuPrincipalUI: falta referencia a GameSaveServicio.");
+            SceneManager.LoadScene("LoginRegistro");
             return;
         }
 
@@ -52,10 +43,7 @@ public class MenuPrincipalUI : MonoBehaviour
             if (txtBienvenida && perfil != null)
                 txtBienvenida.text = $"¡Bienvenido, {perfil.nombreUsuario}!";
         }
-        catch (System.Exception e)
-        {
-            Debug.LogWarning("No se pudo cargar el perfil: " + e.Message);
-        }
+        catch { }
 
         bool esAdmin = perfil != null && perfil.esAdmin;
 
@@ -73,12 +61,11 @@ public class MenuPrincipalUI : MonoBehaviour
                 try
                 {
                     var p = await gameSave.CargarAsync();
-                    // TODO: aplica 'p' a tu GameManager si hace falta
                     SceneManager.LoadScene(p.datosJugador.nombreEscena);
                 }
                 catch (System.Exception ex)
                 {
-                    Debug.LogWarning("No se pudo cargar la partida: " + ex.Message);
+                    if (txtListado) txtListado.text = "Error cargar: " + ex.Message;
                 }
             });
 
@@ -112,7 +99,6 @@ public class MenuPrincipalUI : MonoBehaviour
             {
                 var uid = inputUid ? inputUid.text.Trim() : "";
                 if (string.IsNullOrEmpty(uid)) { if (txtListado) txtListado.text = "UID vacío"; return; }
-
                 try
                 {
                     await gameSave.firestore.EliminarPartidaAsync(gameSave.IdToken, uid);

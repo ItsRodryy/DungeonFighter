@@ -11,7 +11,7 @@ public class PruebaConexion : MonoBehaviour
         var pass = "adrian123456";
 
         // Registrar si no existe; si existe, login
-        try { await juego.RegistroAsync(correo, pass, "Adri"); }
+        try { await juego.RegistroAsync(correo, pass, "Adri"); } // usa overload -> esAdmin=false
         catch { await juego.LoginAsync(correo, pass); }
 
         // Guardado mínimo (tu modelo)

@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class LoginRegistroUI : MonoBehaviour
 {
@@ -10,53 +11,50 @@ public class LoginRegistroUI : MonoBehaviour
     [Header("Inputs")]
     public TMP_InputField inpCorreo;
     public TMP_InputField inpPass;
-    public TMP_InputField inpNombre;       // solo en modo Registro
+    public TMP_InputField inpNombre;   // solo en modo Registro
 
     [Header("UI")]
     public TMP_Text txtError;
-    public GameObject panelRegistro;       // contenedor del InputNombre
+    public GameObject panelRegistro;   // contenedor del InputNombre
+    public TMP_Text btnCambiarModoTexto;
 
-    bool modoRegistro = false;
+    [Header("Registro como Admin")]
+    public Toggle chkAdmin;            // casilla “Crear admin”
 
+    private bool modoRegistro = false;
 
-    void Start()
+    private void Awake()
+    {
+        if (!gameSave) gameSave = Object.FindFirstObjectByType<GameSaveServicio>();
+    }
+
+    private void Start()
     {
         if (txtError) txtError.text = "";
         if (panelRegistro) panelRegistro.SetActive(modoRegistro);
+        if (chkAdmin) chkAdmin.gameObject.SetActive(modoRegistro); // mostrar solo en registro (opcional)
     }
 
-    // Conectar al botón "Cambiar a Registro / Cambiar a Login"
-    public TMP_Text btnCambiarModoTexto; // añade este campo público
+    // Botón "Cambiar a Registro / Cambiar a Login"
     public void ToggleModo()
     {
         modoRegistro = !modoRegistro;
         if (panelRegistro) panelRegistro.SetActive(modoRegistro);
+        if (chkAdmin) chkAdmin.gameObject.SetActive(modoRegistro);
         if (txtError) txtError.text = "";
         if (btnCambiarModoTexto) btnCambiarModoTexto.text = modoRegistro ? "Ir a Login" : "Ir a Registro";
-        Debug.Log("[LoginRegistroUI] Toggle => modoRegistro=" + modoRegistro);
     }
 
-
-    // Conectar al botón "Aceptar"
+    // Botón "Aceptar"
     public async void OnClickAceptar()
     {
-        void Awake()
-        {
-            // Si no está asignado por Inspector, lo buscamos en escena (el persistente de BootServicios)
-            if (!gameSave) gameSave = FindObjectOfType<GameSaveServicio>();
-        }
-
-        // Por si acaso, reintenta enganchar antes de usarlo
-        if (!gameSave) gameSave = FindObjectOfType<GameSaveServicio>();
-        if (!gameSave) { if (txtError) txtError.text = "Falta GameSaveServicio"; return; }
-
-        Debug.Log($"[LoginRegistroUI] modoRegistro={modoRegistro} correo='{inpCorreo.text}' pass='{inpPass.text}' nombre='{(inpNombre ? inpNombre.text : "")}'");
-
+        if (!gameSave) gameSave = Object.FindFirstObjectByType<GameSaveServicio>();
         if (!gameSave) { if (txtError) txtError.text = "Falta GameSaveServicio"; return; }
 
         var correo = inpCorreo ? inpCorreo.text.Trim() : "";
         var pass = inpPass ? inpPass.text.Trim() : "";
         var nombre = inpNombre ? inpNombre.text.Trim() : "";
+        var quiereAdmin = chkAdmin && chkAdmin.isOn;
 
         if (string.IsNullOrEmpty(correo) || string.IsNullOrEmpty(pass))
         {
@@ -69,9 +67,25 @@ public class LoginRegistroUI : MonoBehaviour
         try
         {
             if (modoRegistro)
-                await gameSave.RegistroAsync(correo, pass, nombre);
+            {
+                bool esAdmin = false;
+                if (quiereAdmin)
+                {
+                    if (pass == "admin123456")
+                        esAdmin = true;
+                    else
+                    {
+                        if (txtError) txtError.text = "Para crear un ADMIN usa la contraseña exacta: admin123456";
+                        return;
+                    }
+                }
+
+                await gameSave.RegistroAsync(correo, pass, nombre, esAdmin);
+            }
             else
+            {
                 await gameSave.LoginAsync(correo, pass);
+            }
 
             SceneManager.LoadScene("MenuPrincipal");
         }
