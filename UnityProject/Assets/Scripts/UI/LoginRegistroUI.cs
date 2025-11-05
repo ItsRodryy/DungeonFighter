@@ -91,7 +91,16 @@ public class LoginRegistroUI : MonoBehaviour
         }
         catch (System.Exception ex)
         {
-            if (txtError) txtError.text = "Error: " + ex.Message;
+            // Mensaje para el usuario
+            string msg = ex is FirebaseAuthException fae
+                ? (fae.FirebaseMessage == "INVALID_LOGIN_CREDENTIALS"
+                       ? "Correo o contraseña incorrectos."
+                       : $"Error de autenticación: {fae.FirebaseMessage}")
+                : ("Error: " + ex.Message);
+
+            if (txtError) txtError.text = msg;
+            // NO cambiamos de escena, no salimos del juego. Solo mostramos el error.
         }
+
     }
 }

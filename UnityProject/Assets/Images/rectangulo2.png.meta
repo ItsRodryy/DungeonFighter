@@ -1,22 +1,13 @@
 fileFormatVersion: 2
-guid: 8bfb2935dad4b2f47ba311f6f8a75aba
+guid: e5c71daadf64bf542aaeb5da7862c823
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1874253034357041356
-    second: bienvenido 1_0
+      213: -6408217370401769099
+    second: rectangulo2_0
   - first:
-      213: -841014415395953730
-    second: bienvenido 1_1
-  - first:
-      213: -3197673599049085083
-    second: bienvenido 1_2
-  - first:
-      213: -1158653346730633935
-    second: bienvenido 1_3
-  - first:
-      213: 6061684721835520011
-    second: bienvenido 1_4
+      213: 2616336841330201176
+    second: rectangulo2_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -58,12 +49,12 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 0
+  spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 16
+  spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -112,13 +103,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: bienvenido 1_0
+      name: rectangulo2_0
       rect:
         serializedVersion: 2
-        x: 3
-        y: 32
-        width: 1021
-        height: 987
+        x: 11
+        y: 0
+        width: 1515
+        height: 1024
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -127,41 +118,19 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: cc8ac0c543fa20a10800000000000000
-      internalID: 1874253034357041356
+      spriteID: 579f6b9f0407117a0800000000000000
+      internalID: -6408217370401769099
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: bienvenido 1_1
+      name: rectangulo2_1
       rect:
         serializedVersion: 2
-        x: 177
-        y: 252
-        width: 13
-        height: 7
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: eb3675758dd1454f0800000000000000
-      internalID: -841014415395953730
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: bienvenido 1_2
-      rect:
-        serializedVersion: 2
-        x: 187
-        y: 252
-        width: 7
+        x: 492
+        y: 787
+        width: 8
         height: 6
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -171,52 +140,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 56fc80dbdc49f93d0800000000000000
-      internalID: -3197673599049085083
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: bienvenido 1_3
-      rect:
-        serializedVersion: 2
-        x: 254
-        y: 252
-        width: 12
-        height: 7
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 1359d428be2abefe0800000000000000
-      internalID: -1158653346730633935
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: bienvenido 1_4
-      rect:
-        serializedVersion: 2
-        x: 363
-        y: 252
-        width: 7
-        height: 7
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b003b69632e6f1450800000000000000
-      internalID: 6061684721835520011
+      spriteID: 8521148ce781f4420800000000000000
+      internalID: 2616336841330201176
       vertices: []
       indices: 
       edges: []
@@ -225,7 +150,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -235,11 +160,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      bienvenido 1_0: 1874253034357041356
-      bienvenido 1_1: -841014415395953730
-      bienvenido 1_2: -3197673599049085083
-      bienvenido 1_3: -1158653346730633935
-      bienvenido 1_4: 6061684721835520011
+      rectangulo2_0: -6408217370401769099
+      rectangulo2_1: 2616336841330201176
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

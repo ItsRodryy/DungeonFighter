@@ -4,6 +4,19 @@ using UnityEngine;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
 
+/// Excepción específica de Firebase Auth para mensajes limpios.
+public class FirebaseAuthException : System.Exception
+{
+    public long HttpCode { get; }
+    public string FirebaseMessage { get; }
+    public FirebaseAuthException(long httpCode, string firebaseMessage)
+        : base($"{httpCode}: {firebaseMessage}")
+    {
+        HttpCode = httpCode;
+        FirebaseMessage = firebaseMessage;
+    }
+}
+
 // Cliente para registrar e iniciar sesión en FirebaseAuth (email/contraseña).
 // Devuelve idToken (para autorizar en Firestore) y localId (UID).
 public class FirebaseAuthCliente : MonoBehaviour
@@ -15,17 +28,14 @@ public class FirebaseAuthCliente : MonoBehaviour
         public string email;
         public string refreshToken;
         public string expiresIn;
-        // UID del usuario
-        public string localId;
+        public string localId; // UID
     }
 
     public FirebaseAjustes ajustes;
 
-    // Construye la URL del método de Auth con la apiKey
     string Url(string metodo) =>
         $"https://identitytoolkit.googleapis.com/v1/accounts:{metodo}?key={ajustes.apiKey}";
 
-    // Envia un JSON con UnityWebRequest y espera con Task
     async Task<string> EnviarJsonAsync(string url, string metodo, string json)
     {
         var req = new UnityWebRequest(url, metodo);
@@ -41,26 +51,27 @@ public class FirebaseAuthCliente : MonoBehaviour
         req.SendWebRequest().completed += _ => tcs.SetResult(true);
         await tcs.Task;
 
+        // IMPORTANTE: si hay error HTTP lanzamos SIEMPRE una excepción controlada (FirebaseAuthException)
         if (req.result != UnityWebRequest.Result.Success)
         {
-            string detalle = req.downloadHandler != null ? req.downloadHandler.text : "";
-            string firebaseMsg = "";
+            var detalle = req.downloadHandler != null ? req.downloadHandler.text : "";
+            string fbMsg = "ERROR_AUTENTICACION";
             try
             {
-                // Extrae el mensaje estándar de Firebase: { error: { message: "XXXX" } }
-                var o = JsonConvert.DeserializeObject<dynamic>(detalle);
-                firebaseMsg = (string)o.error.message;
+                // Esperado: { "error": { "message": "INVALID_LOGIN_CREDENTIALS", ... } }
+                var o = Newtonsoft.Json.Linq.JObject.Parse(detalle);
+                fbMsg = (string)o["error"]?["message"] ?? fbMsg;
             }
-            catch { }
-            var msg = $"{req.responseCode}: {(string.IsNullOrEmpty(firebaseMsg) ? req.error : firebaseMsg)}";
-            Debug.LogError("FirebaseAuth ERROR => " + msg + " | detalle=" + detalle);
-            throw new System.Exception(msg);
+            catch { /* si no es JSON, mantenemos fbMsg genérico */ }
+
+            var ex = new FirebaseAuthException(req.responseCode, fbMsg);
+            Debug.LogWarning($"FirebaseAuth => {ex.Message} | detalle={detalle}");
+            throw ex;
         }
 
         return req.downloadHandler.text;
     }
 
-    // Registro de usuario
     public async Task<RespuestaAuth> RegistrarseAsync(string correo, string contrasena)
     {
         var body = JsonConvert.SerializeObject(new { email = correo, password = contrasena, returnSecureToken = true });
@@ -68,7 +79,6 @@ public class FirebaseAuthCliente : MonoBehaviour
         return JsonConvert.DeserializeObject<RespuestaAuth>(json);
     }
 
-    // Login de usuario
     public async Task<RespuestaAuth> IniciarSesionAsync(string correo, string contrasena)
     {
         var body = JsonConvert.SerializeObject(new { email = correo, password = contrasena, returnSecureToken = true });

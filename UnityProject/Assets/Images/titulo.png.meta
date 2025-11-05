@@ -1,13 +1,10 @@
 fileFormatVersion: 2
-guid: e3762bdc4cd10954b8c8836d8f8fa29e
+guid: d9f40e50b5645814cb2cd47e92d13798
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5648134016050303227
-    second: loginregistro_0
-  - first:
-      213: 4062551216672687591
-    second: loginregistro_1
+      213: 3748425351803905432
+    second: titulo_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -49,12 +46,12 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 16
+  spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -103,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: loginregistro_0
+      name: titulo_0
       rect:
         serializedVersion: 2
-        x: 149
-        y: 519
-        width: 737
-        height: 364
+        x: 11
+        y: 0
+        width: 1494
+        height: 1024
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -118,30 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: bf09a7666f3326e40800000000000000
-      internalID: 5648134016050303227
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: loginregistro_1
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 88
-        width: 1024
-        height: 417
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 7e54b97aec4116830800000000000000
-      internalID: 4062551216672687591
+      spriteID: 89527595ff4150430800000000000000
+      internalID: 3748425351803905432
       vertices: []
       indices: 
       edges: []
@@ -150,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -160,8 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      loginregistro_0: 5648134016050303227
-      loginregistro_1: 4062551216672687591
+      titulo_0: 3748425351803905432
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

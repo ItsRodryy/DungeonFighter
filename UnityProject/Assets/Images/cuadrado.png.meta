@@ -1,10 +1,22 @@
 fileFormatVersion: 2
-guid: 56ffe4c664816b84e9c33c8ece0484d0
+guid: db3f16dc8af41aa4bb9cbf3636abd853
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2913714721334961182
-    second: fondo (2)_0
+      213: 3981487691237994998
+    second: cuadrado_0
+  - first:
+      213: 6094687433780123980
+    second: cuadrado_1
+  - first:
+      213: -2759621522263340598
+    second: cuadrado_2
+  - first:
+      213: 5158185326118282653
+    second: cuadrado_3
+  - first:
+      213: -354785115637194433
+    second: cuadrado_4
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,12 +112,12 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: fondo (2)_0
+      name: cuadrado_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 11
         y: 0
-        width: 1536
+        width: 102
         height: 1024
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -115,8 +127,96 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2ebd00206e76097d0800000000000000
-      internalID: -2913714721334961182
+      spriteID: 6f1b4d9d5f5114730800000000000000
+      internalID: 3981487691237994998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cuadrado_1
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 968
+        width: 7
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4950831eeda49450800000000000000
+      internalID: 6094687433780123980
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cuadrado_2
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 710
+        width: 8
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac988fab8dad3b9d0800000000000000
+      internalID: -2759621522263340598
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cuadrado_3
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 326
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d95a9e0993e859740800000000000000
+      internalID: 5158185326118282653
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cuadrado_4
+      rect:
+        serializedVersion: 2
+        x: 129
+        y: 0
+        width: 1397
+        height: 1024
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f3169da21dc831bf0800000000000000
+      internalID: -354785115637194433
       vertices: []
       indices: 
       edges: []
@@ -135,7 +235,11 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      fondo (2)_0: -2913714721334961182
+      cuadrado_0: 3981487691237994998
+      cuadrado_1: 6094687433780123980
+      cuadrado_2: -2759621522263340598
+      cuadrado_3: 5158185326118282653
+      cuadrado_4: -354785115637194433
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
