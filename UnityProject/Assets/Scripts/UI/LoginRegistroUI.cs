@@ -11,15 +11,15 @@ public class LoginRegistroUI : MonoBehaviour
     [Header("Inputs")]
     public TMP_InputField inpCorreo;
     public TMP_InputField inpPass;
-    public TMP_InputField inpNombre;   // solo en modo Registro
+    public TMP_InputField inpNombre;
 
     [Header("UI")]
     public TMP_Text txtError;
-    public GameObject panelRegistro;   // contenedor del InputNombre
+    public GameObject panelRegistro;
     public TMP_Text btnCambiarModoTexto;
 
     [Header("Registro como Admin")]
-    public Toggle chkAdmin;            // casilla “Crear admin”
+    public Toggle chkAdmin;
 
     private bool modoRegistro = false;
 
@@ -32,10 +32,10 @@ public class LoginRegistroUI : MonoBehaviour
     {
         if (txtError) txtError.text = "";
         if (panelRegistro) panelRegistro.SetActive(modoRegistro);
-        if (chkAdmin) chkAdmin.gameObject.SetActive(modoRegistro); // mostrar solo en registro (opcional)
+        if (chkAdmin) chkAdmin.gameObject.SetActive(modoRegistro);
     }
 
-    // Botón "Cambiar a Registro / Cambiar a Login"
+    // Botón Cambiar a Registro / Cambiar a Login
     public void ToggleModo()
     {
         modoRegistro = !modoRegistro;
@@ -45,7 +45,7 @@ public class LoginRegistroUI : MonoBehaviour
         if (btnCambiarModoTexto) btnCambiarModoTexto.text = modoRegistro ? "Ir a Login" : "Ir a Registro";
     }
 
-    // Botón "Aceptar"
+    // Botón Aceptar
     public async void OnClickAceptar()
     {
         if (!gameSave) gameSave = Object.FindFirstObjectByType<GameSaveServicio>();
@@ -75,7 +75,7 @@ public class LoginRegistroUI : MonoBehaviour
                         esAdmin = true;
                     else
                     {
-                        if (txtError) txtError.text = "Para crear un ADMIN usa la contraseña exacta: admin123456";
+                        if (txtError) txtError.text = "Ingresa la contraseña de admin";
                         return;
                     }
                 }
@@ -91,15 +91,14 @@ public class LoginRegistroUI : MonoBehaviour
         }
         catch (System.Exception ex)
         {
-            // Mensaje para el usuario
+            // Mensaje
             string msg = ex is FirebaseAuthException fae
                 ? (fae.FirebaseMessage == "INVALID_LOGIN_CREDENTIALS"
-                       ? "Correo o contraseña incorrectos."
-                       : $"Error de autenticación: {fae.FirebaseMessage}")
+                       ? "Credenciales incorrectas."
+                       : $"Error de logueo: {fae.FirebaseMessage}")
                 : ("Error: " + ex.Message);
 
             if (txtError) txtError.text = msg;
-            // NO cambiamos de escena, no salimos del juego. Solo mostramos el error.
         }
 
     }

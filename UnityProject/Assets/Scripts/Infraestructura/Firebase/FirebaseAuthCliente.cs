@@ -3,8 +3,6 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
-
-/// Excepción específica de Firebase Auth para mensajes limpios.
 public class FirebaseAuthException : System.Exception
 {
     public long HttpCode { get; }
@@ -17,8 +15,8 @@ public class FirebaseAuthException : System.Exception
     }
 }
 
-// Cliente para registrar e iniciar sesión en FirebaseAuth (email/contraseña).
-// Devuelve idToken (para autorizar en Firestore) y localId (UID).
+// Registrar e iniciar sesión en FirebaseAuth (email/contraseña).
+// Devuelve el idToken (para autorizar en Firestore) y localId (UID).
 public class FirebaseAuthCliente : MonoBehaviour
 {
     [System.Serializable]
@@ -28,7 +26,7 @@ public class FirebaseAuthCliente : MonoBehaviour
         public string email;
         public string refreshToken;
         public string expiresIn;
-        public string localId; // UID
+        public string localId;
     }
 
     public FirebaseAjustes ajustes;
@@ -51,18 +49,18 @@ public class FirebaseAuthCliente : MonoBehaviour
         req.SendWebRequest().completed += _ => tcs.SetResult(true);
         await tcs.Task;
 
-        // IMPORTANTE: si hay error HTTP lanzamos SIEMPRE una excepción controlada (FirebaseAuthException)
+        // Si hay un error, lanzamos una excepción controlada (FirebaseAuthException)
         if (req.result != UnityWebRequest.Result.Success)
         {
             var detalle = req.downloadHandler != null ? req.downloadHandler.text : "";
             string fbMsg = "ERROR_AUTENTICACION";
             try
             {
-                // Esperado: { "error": { "message": "INVALID_LOGIN_CREDENTIALS", ... } }
+                // Credenciales Incorrectas
                 var o = Newtonsoft.Json.Linq.JObject.Parse(detalle);
                 fbMsg = (string)o["error"]?["message"] ?? fbMsg;
             }
-            catch { /* si no es JSON, mantenemos fbMsg genérico */ }
+            catch { }
 
             var ex = new FirebaseAuthException(req.responseCode, fbMsg);
             Debug.LogWarning($"FirebaseAuth => {ex.Message} | detalle={detalle}");

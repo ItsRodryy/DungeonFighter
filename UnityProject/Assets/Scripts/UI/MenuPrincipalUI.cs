@@ -10,7 +10,7 @@ public class MenuPrincipalUI : MonoBehaviour
     public GameSaveServicio gameSave;
 
     [Header("Comunes")]
-    public TMP_Text txtBienvenida; // opcional
+    public TMP_Text txtBienvenida;
 
     [Header("Panel Usuario")]
     public GameObject panelUsuario;
@@ -37,7 +37,7 @@ public class MenuPrincipalUI : MonoBehaviour
                 return;
             }
 
-            // 1) Perfil y saludo
+            // 1)
             FirestoreCliente.UsuarioPerfil perfil = null;
             try
             {
@@ -45,15 +45,15 @@ public class MenuPrincipalUI : MonoBehaviour
                 if (txtBienvenida && perfil != null)
                     txtBienvenida.text = $"¡Bienvenido, {perfil.nombreUsuario}!";
             }
-            catch { /* no rompemos el menú si falla */ }
+            catch { } // No parto el menú si falla
 
             bool esAdmin = perfil != null && perfil.esAdmin;
 
-            // 2) Mostrar panel que toque
+            // 2) Mostramos Admin o Usuario
             if (panelAdmin) panelAdmin.SetActive(esAdmin);
             if (panelUsuario) panelUsuario.SetActive(!esAdmin);
 
-            // 3) Botones - Usuario
+            // 3) Botones Usuario
             if (btnNuevaPartida)
                 btnNuevaPartida.onClick.AddListener(() => SceneManager.LoadScene("Juego"));
 
@@ -79,7 +79,7 @@ public class MenuPrincipalUI : MonoBehaviour
                     SceneManager.LoadScene("LoginRegistro");
                 });
 
-            // 4) Botones - Admin
+            // 4) Botones Admin
             if (btnListarPartidas)
                 btnListarPartidas.onClick.AddListener(async () =>
                 {

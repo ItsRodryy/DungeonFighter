@@ -6,19 +6,21 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 
-// Cliente REST para Firestore.
+// Cliente REST para Firestore
+
 // Colecciones:
 // - usuarios/{uid} -> email, nombreUsuario, fechaCreacion, esAdmin, activo
 // - partidasGuardadas/{uid} -> nombrePartida, ultimaActualizacion, datosJugador, datosInventario, estadoMundo
+
 public class FirestoreCliente : MonoBehaviour
 {
     public FirebaseAjustes ajustes;
 
-    // Construye la URL del documento
+    // Construímos la URL del documento
     string DocUrl(string col, string id) =>
         $"https://firestore.googleapis.com/v1/projects/{ajustes.projectId}/databases/(default)/documents/{col}/{id}";
 
-    // ------------------ MODELOS ------------------
+    // MODELOS
 
     [System.Serializable]
     public class UsuarioPerfil
@@ -40,9 +42,9 @@ public class FirestoreCliente : MonoBehaviour
         public EstadoMundo estadoMundo;
     }
 
-    // ------------------ CORE HTTP ------------------
+    // CORE HTTP
 
-    // Enviar JSON con UnityWebRequest
+    // Enviamos JSON con UnityWebRequest
     async Task<string> EnviarJsonAsync(string url, string metodo, string json, string idToken = null)
     {
         var req = new UnityWebRequest(url, metodo);
@@ -66,9 +68,9 @@ public class FirestoreCliente : MonoBehaviour
         return req.downloadHandler.text;
     }
 
-    // ------------------ USUARIOS ------------------
+    // USUARIOS
 
-    // Crea/actualiza /usuarios/{uid} con el perfil básico y el ROL indicado
+    // Crea/actualiza /usuarios/{uid} con el ROL indicado
     public async Task UpsertUsuarioAsync(string idToken, string uid, string email, string nombreUsuario, bool esAdmin)
     {
         var url = DocUrl("usuarios", uid);
@@ -87,7 +89,7 @@ public class FirestoreCliente : MonoBehaviour
         await EnviarJsonAsync(url, "PATCH", body, idToken);
     }
 
-    // Lee /usuarios/{uid} y devuelve el perfil (incluye esAdmin)
+    // Leemos /usuarios/{uid} y devolvemos el perfil (incluímos esAdmin)
     public async Task<UsuarioPerfil> GetUsuarioPerfilAsync(string idToken, string uid)
     {
         var url = DocUrl("usuarios", uid);
@@ -104,26 +106,25 @@ public class FirestoreCliente : MonoBehaviour
         };
     }
 
-    // ------------------ PARTIDAS ------------------
+    // PARTIDAS
 
-    // Convierte nuestro objeto C# al formato de Firestore REST
+    // Convertimos nuestro objeto C# al formato de Firestore REST
     object ToFirestore(PartidaGuardada p) => new
     {
         fields = new
         {
             nombrePartida = new { stringValue = p.nombrePartida },
 
-            // datosJugador como mapa
+            // datosJugador
             datosJugador = new
             {
                 mapValue = new
                 {
                     fields = new
                     {
-                        // integerValue se manda como string en la API REST
                         vida = new { integerValue = p.datosJugador.vida.ToString() },
                         vidaMaxima = new { integerValue = p.datosJugador.vidaMaxima.ToString() },
-                        // posX/posY como double
+                        // posX/posY
                         posX = new { doubleValue = p.datosJugador.posX },
                         posY = new { doubleValue = p.datosJugador.posY },
                         nombreEscena = new { stringValue = p.datosJugador.nombreEscena }
@@ -131,7 +132,7 @@ public class FirestoreCliente : MonoBehaviour
                 }
             },
 
-            // datosInventario como mapa
+            // datosInventario
             datosInventario = new
             {
                 mapValue = new
@@ -145,7 +146,7 @@ public class FirestoreCliente : MonoBehaviour
                 }
             },
 
-            // estadoMundo con arrays de string
+            // estadoMundo
             estadoMundo = new
             {
                 mapValue = new
@@ -172,12 +173,12 @@ public class FirestoreCliente : MonoBehaviour
                 }
             },
 
-            // marca de tiempo del último guardado
+            // Marcamos el estado del último guardado
             ultimaActualizacion = new { timestampValue = System.DateTime.UtcNow.ToString("o") }
         }
     };
 
-    // Guarda (sobrescribe) /partidasGuardadas/{uid} con el último estado
+    // Guarda sobrescribiendo en /partidasGuardadas/{uid} con el último estado
     public async Task GuardarPartidaAsync(string idToken, string uid, PartidaGuardada p)
     {
         var url = DocUrl("partidasGuardadas", uid);
@@ -185,13 +186,13 @@ public class FirestoreCliente : MonoBehaviour
         await EnviarJsonAsync(url, "PATCH", body, idToken);
     }
 
-    // Carga /partidasGuardadas/{uid} y lo convierte a nuestro objeto C#
+    // Carga /partidasGuardadas/{uid} convertimos a nuestro objeto C#
     public async Task<PartidaGuardada> CargarPartidaAsync(string idToken, string uid)
     {
         var url = DocUrl("partidasGuardadas", uid);
         var txt = await EnviarJsonAsync(url, UnityWebRequest.kHttpVerbGET, null, idToken);
 
-        // Parseo con JObject (sin dynamic)
+        // Parseo con JObject
         var doc = JObject.Parse(txt);
         var f = doc["fields"] ?? throw new System.Exception("Documento sin 'fields'");
 
@@ -225,9 +226,9 @@ public class FirestoreCliente : MonoBehaviour
         return p;
     }
 
-    // --------- Funciones para el panel Admin ---------
+    // Panel Admin
 
-    // Lista partidas de todos (para admin)
+    // Lista Partidas
     public async Task<List<(string uid, PartidaGuardada partida)>> ListarPartidasAsync(string idToken, int pageSize = 50)
     {
         var url = $"https://firestore.googleapis.com/v1/projects/{ajustes.projectId}/databases/(default)/documents:runQuery";
@@ -248,7 +249,7 @@ public class FirestoreCliente : MonoBehaviour
         {
             var doc = r["document"];
             if (doc == null) continue;
-            var name = doc["name"]?.ToString(); // .../documents/partidasGuardadas/{uid}
+            var name = doc["name"]?.ToString();
             var uid = name?.Substring(name.LastIndexOf('/') + 1);
             var f = doc["fields"];
             if (f == null) continue;
@@ -281,14 +282,14 @@ public class FirestoreCliente : MonoBehaviour
         return list;
     }
 
-    // Elimina la partida de un uid (para admin)
+    // Elimina la partida de un uid (solo admin)
     public async Task EliminarPartidaAsync(string idToken, string uid)
     {
         var url = DocUrl("partidasGuardadas", uid);
         await EnviarJsonAsync(url, UnityWebRequest.kHttpVerbDELETE, null, idToken);
     }
 
-    // ------------------ HELPERS ------------------
+    // HELPERS
 
     static string GetString(JToken parent, string name)
         => parent?[name]?["stringValue"]?.ToString() ?? "";
