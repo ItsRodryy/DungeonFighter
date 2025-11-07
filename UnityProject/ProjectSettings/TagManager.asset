@@ -2,7 +2,7 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!78 &1
 TagManager:
-  serializedVersion: 2
+  serializedVersion: 3
   tags: []
   layers:
   - Default
@@ -13,10 +13,10 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
-  - 
-  - 
+  - L_Player
+  - L_Enemy
+  - L_Wall
+  - L_Projectile
   - 
   - 
   - 
@@ -41,3 +41,26 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Background
+    uniqueID: 2385711827
+    locked: 0
+  - name: Ground
+    uniqueID: 1092813089
+    locked: 0
+  - name: Walls
+    uniqueID: 2795174797
+    locked: 0
+  - name: Props
+    uniqueID: 4124149619
+    locked: 0
+  - name: Characters
+    uniqueID: 3104927869
+    locked: 0
+  - name: Projectiles
+    uniqueID: 921849009
+    locked: 0
+  - name: UI
+    uniqueID: 2731670369
+    locked: 0
+  m_RenderingLayers:
+  - Default
