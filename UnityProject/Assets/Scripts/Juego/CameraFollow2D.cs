@@ -2,14 +2,15 @@ using UnityEngine;
 
 public class CameraFollow2D : MonoBehaviour
 {
-    public Transform target;  // Player
-    public float smooth = 8f; // mayor = más rápido
+    public Transform target;
+    public float smooth = 8f;   // cuanto mayor, más rápido
+    Vector3 vel;                // velocidad interna SmoothDamp
 
     void LateUpdate()
     {
         if (!target) return;
-        Vector3 pos = transform.position;
-        pos = Vector3.Lerp(pos, new Vector3(target.position.x, target.position.y, -10f), smooth * Time.deltaTime);
-        transform.position = pos;
+        var goal = new Vector3(target.position.x, target.position.y, -10f);
+        float smoothTime = 1f / Mathf.Max(0.0001f, smooth); // 8 -> ~0.125s
+        transform.position = Vector3.SmoothDamp(transform.position, goal, ref vel, smoothTime);
     }
 }
