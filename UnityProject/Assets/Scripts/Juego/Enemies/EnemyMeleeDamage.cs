@@ -1,18 +1,28 @@
 ﻿using UnityEngine;
 
-namespace DungeonFighter.Combat   // ← meto namespace para blindarte
+namespace DungeonFighter.Combat
 {
     public class EnemyMeleeDamage : MonoBehaviour
     {
         public int damage = 1;
+        bool didHitThisSwing;
 
-        private void OnTriggerEnter2D(Collider2D other)
+        void OnEnable() { didHitThisSwing = false; }
+        void OnDisable() { didHitThisSwing = false; }
+
+        void OnTriggerEnter2D(Collider2D other) { TryHit(other); }
+        void OnTriggerStay2D(Collider2D other) { TryHit(other); }
+
+        void TryHit(Collider2D other)
         {
-            if (other.CompareTag("Player"))
+            if (didHitThisSwing) return;
+            if (!other.CompareTag("Player")) return;
+
+            var hp = other.GetComponentInParent<PlayerHealth>();
+            if (hp != null)
             {
-                // Conecta con tu vida del jugador cuando la tengas:
-                Debug.Log($"Golpe al player: -{damage}");
-                // other.GetComponent<PlayerHealth>()?.TakeDamage(damage);
+                hp.TakeDamage(damage, transform.position);
+                didHitThisSwing = true;        // 1 golpe por ventana
             }
         }
     }

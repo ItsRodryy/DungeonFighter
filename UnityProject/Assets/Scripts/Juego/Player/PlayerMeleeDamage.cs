@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using DungeonFighter.Combat;  // ← para ver EnemyHealth
 
 namespace DungeonFighter.Combat
 {
@@ -12,8 +11,7 @@ namespace DungeonFighter.Combat
             if (other.CompareTag("Enemy"))
             {
                 var hp = other.GetComponentInParent<EnemyHealth>();
-                if (hp) hp.TakeDamage(damage);
-                else Debug.Log("Hit a Enemy sin EnemyHealth");
+                if (hp) hp.TakeDamage(damage, transform.position);
             }
         }
     }

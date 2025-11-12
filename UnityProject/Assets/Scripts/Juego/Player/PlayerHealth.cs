@@ -1,19 +1,21 @@
 using UnityEngine;
+using System.Collections;
 
 namespace DungeonFighter.Combat
 {
     [RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(Rigidbody2D))]
-    public class EnemyHealth : MonoBehaviour
+    public class PlayerHealth : MonoBehaviour
     {
-        public int maxHP = 3;
+        public int maxHP = 10;
         int hp;
         bool isDead;
 
         Animator anim;
         Rigidbody2D rb;
         Collider2D[] cols;
-        EnemyChase2D ai;
+        MonoBehaviour move;   // PlayerController2D
+        MonoBehaviour attack; // PlayerAttack2D
 
         void Awake()
         {
@@ -21,7 +23,12 @@ namespace DungeonFighter.Combat
             anim = GetComponent<Animator>();
             rb = GetComponent<Rigidbody2D>();
             cols = GetComponentsInChildren<Collider2D>(true);
-            ai = GetComponent<EnemyChase2D>();
+
+            move = GetComponent<MonoBehaviour>(); // luego lo sustituimos abajo
+            attack = GetComponent<MonoBehaviour>(); // idem
+            // Si existen, asigna explícito para evitar ambigüedad:
+            move = GetComponent<PlayerController2D>();
+            attack = GetComponent<PlayerAttack2D>();
         }
 
         public void TakeDamage(int dmg, Vector2 fromWorldPos)
@@ -40,18 +47,20 @@ namespace DungeonFighter.Combat
             anim.SetFloat("MoveY", face.y);
             anim.SetTrigger("Hurt");
 
-            Debug.Log($"Jugador ataca a enemigo, -{dmg} de vida, vida restante: {hp}");
+            Debug.Log($"Enemigo ataca a jugador, -{dmg} de vida, vida restante: {hp}");
 
             if (hp <= 0)
             {
                 isDead = true;
                 anim.SetTrigger("Die");
-                if (ai) ai.enabled = false;
+                if (move) move.enabled = false;
+                if (attack) attack.enabled = false;
                 if (rb) rb.linearVelocity = Vector2.zero;
+                // desactiva colisionadores para no recibir más golpes
                 foreach (var c in cols) c.enabled = false;
 
-                // destruye tras la anim de muerte (ajusta si tu clip dura más)
-                Destroy(gameObject, 0.8f);
+                // no destruimos al jugador (puedes poner GameOver aquí si quieres)
+                // StartCoroutine(GameOverRoutine());
             }
         }
     }

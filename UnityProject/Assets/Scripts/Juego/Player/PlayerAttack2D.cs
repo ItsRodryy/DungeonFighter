@@ -8,8 +8,8 @@ public class PlayerAttack2D : MonoBehaviour
     public Collider2D hitbox;          // arrastra Hitbox_Sword (BoxCollider2D)
 
     [Header("Ajustes")]
-    public float cooldown = 0.35f;     // tiempo entre ataques
-    public float lockTime = 0.12f;     // “clavado” breve para que el golpe se sienta
+    public float cooldown = 0.2f;     // tiempo entre ataques
+    public float lockTime = 0.0f;     // “clavado” breve para que el golpe se sienta
     public KeyCode key = KeyCode.J;    // o usa botón del ratón
 
     [Header("Offsets locales de la hitbox")]
@@ -41,12 +41,12 @@ public class PlayerAttack2D : MonoBehaviour
         // Forzamos que el BT_Attack lea esta dirección ESTE frame
         anim.SetFloat("MoveX", face.x);
         anim.SetFloat("MoveY", face.y);
-        anim.Update(0f);               // empuja los cambios al árbol
-
-        anim.SetTrigger("Attack");     // dispara el estado de ataque
+        anim.Update(0f);         // asegura que el árbol lee la dirección este frame
+        anim.ResetTrigger("Attack"); // limpia restos (por si acaso)
+        anim.SetTrigger("Attack");
 
         // Pequeño “lock” para que no patine durante el golpe
-        lockUntil = Time.time + lockTime;
+        // lockUntil = Time.time + lockTime;
         nextTime = Time.time + cooldown;
     }
 
