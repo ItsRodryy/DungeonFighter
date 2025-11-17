@@ -1,11 +1,11 @@
 🧙‍♂️ Dungeon Fighter
 
-Dungeon Fighter es un videojuego 2D de acción y exploración con perspectiva Top-Down (“falso 3D”), desarrollado en Unity con C#. El jugador encarna a un luchador que debe adentrarse en una mazmorra llena de enemigos, cofres y jefes finales.
+Dungeon Fighter es un videojuego 2D de acción y exploración tipo Top-Down, desarrollado en Unity con C#. El jugador será a un luchador que deberá adentrarse en una mazmorra llena de enemigos, cofres y un gran jefe final.
 
 🎮 Descripción
 
-El juego combina elementos del género Dungeon Crawler y Roguelite, centrado en una experiencia para un solo jugador.
-El objetivo es explorar salas interconectadas, derrotar enemigos, gestionar recursos (vida, llaves, pociones) y avanzar hasta vencer al jefe final.
+El juego se centrará en una experiencia para un solo jugador.
+El objetivo será explorar salas interconectadas, derrotar enemigos, gestionar recursos (vida, llaves, pociones) y avanzar hasta vencer al jefe final.
 
 Incluye:
 
@@ -45,7 +45,7 @@ The Binding of Isaac
 
 The Legend of Zelda: A Link to the Past
 
-Dungeon Fighter busca una experiencia corta y pulida, usando tecnologías modernas para la gestión de datos en la nube.
+Dungeon Fighter buscará en el usuario una experiencia corta y pulida, usando tecnologías modernas para la gestión de datos en la nube.
 
 👤 Autor
 

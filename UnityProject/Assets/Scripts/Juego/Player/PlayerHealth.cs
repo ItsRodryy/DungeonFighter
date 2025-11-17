@@ -45,6 +45,15 @@ namespace DungeonFighter.Combat
             attack = GetComponent<PlayerAttack2D>();
         }
 
+        void Start()
+        {
+            // Actualizar HUD de vida al empezar (si hay GameUI en la escena).
+            if (JuegoUI.Instance != null)
+            {
+                JuegoUI.Instance.SetHealth(hp, maxHP);
+            }
+        }
+
         // Llamado cuando el jugador recibe daño.
         public void TakeDamage(int dmg, Vector2 fromWorldPos)
         {
@@ -56,6 +65,12 @@ namespace DungeonFighter.Combat
 
             // Restar vida y clamp a 0.
             hp = Mathf.Max(0, hp - dmg);
+
+            // UI: actualizar HUD de vida.
+            if (JuegoUI.Instance != null)
+            {
+                JuegoUI.Instance.SetHealth(hp, maxHP);
+            }
 
             // Calcular vector desde el golpe hasta el jugador para orientar el Hurt.
             Vector2 delta = (Vector2)transform.position - fromWorldPos;
@@ -97,6 +112,25 @@ namespace DungeonFighter.Combat
                 // Aquí se podría lanzar corutina de GameOver, etc.
                 // StartCoroutine(GameOverRoutine());
             }
+        }
+
+        // Cura al jugador a tope de vida (usado por el cofre).
+        public void HealToFull()
+        {
+            // Si el jugador está muerto, no tiene sentido curarlo aquí.
+            if (isDead) return;
+
+            // Poner vida actual al máximo.
+            hp = maxHP;
+
+            // UI: actualizar HUD de vida.
+            if (JuegoUI.Instance != null)
+            {
+                JuegoUI.Instance.SetHealth(hp, maxHP);
+            }
+
+            // Log de depuración.
+            Debug.Log($"Cofre cura al jugador: vida restaurada a {hp}/{maxHP}");
         }
     }
 }
