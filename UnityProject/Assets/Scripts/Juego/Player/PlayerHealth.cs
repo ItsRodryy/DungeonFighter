@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections;
+using DungeonFighter.Combat;
 
 namespace DungeonFighter.Combat
 {
@@ -7,59 +7,94 @@ namespace DungeonFighter.Combat
     [RequireComponent(typeof(Rigidbody2D))]
     public class PlayerHealth : MonoBehaviour
     {
+        // Propiedad pública de solo lectura para saber si el jugador está muerto.
+        public bool IsDead => isDead;
+
+        // Vida máxima del jugador.
         public int maxHP = 10;
+
+        // Vida actual.
         int hp;
+
+        // Flag para marcar que el jugador ya está muerto.
         bool isDead;
 
+        // Referencias a componentes.
         Animator anim;
         Rigidbody2D rb;
+
+        // Todos los colliders del jugador (incluidos hijos).
         Collider2D[] cols;
-        MonoBehaviour move;   // PlayerController2D
-        MonoBehaviour attack; // PlayerAttack2D
+
+        // Scripts de movimiento y ataque del jugador, para desactivarlos al morir.
+        MonoBehaviour move;   // Esperado: PlayerController2D.
+        MonoBehaviour attack; // Esperado: PlayerAttack2D.
 
         void Awake()
         {
+            // Inicializamos la vida al máximo.
             hp = maxHP;
+
+            // Cacheo de componentes.
             anim = GetComponent<Animator>();
             rb = GetComponent<Rigidbody2D>();
             cols = GetComponentsInChildren<Collider2D>(true);
 
-            move = GetComponent<MonoBehaviour>(); // luego lo sustituimos abajo
-            attack = GetComponent<MonoBehaviour>(); // idem
-            // Si existen, asigna explícito para evitar ambigüedad:
+            // Asignación explícita a los componentes concretos (si existen).
             move = GetComponent<PlayerController2D>();
             attack = GetComponent<PlayerAttack2D>();
         }
 
+        // Llamado cuando el jugador recibe daño.
         public void TakeDamage(int dmg, Vector2 fromWorldPos)
         {
+            // Si ya está muerto, ignoramos.
             if (isDead) return;
 
+            // No permitimos daño menor a 1.
             dmg = Mathf.Max(1, dmg);
+
+            // Restar vida y clamp a 0.
             hp = Mathf.Max(0, hp - dmg);
 
-            // Direccionalidad del Hurt
+            // Calcular vector desde el golpe hasta el jugador para orientar el Hurt.
             Vector2 delta = (Vector2)transform.position - fromWorldPos;
+
+            // Determinar eje dominante para saber si ha sido más lateral o vertical.
             Vector2 face = (Mathf.Abs(delta.x) > Mathf.Abs(delta.y))
-                          ? new Vector2(Mathf.Sign(delta.x), 0f)
-                          : new Vector2(0f, Mathf.Sign(delta.y));
+                ? new Vector2(Mathf.Sign(delta.x), 0f)
+                : new Vector2(0f, Mathf.Sign(delta.y));
+
+            // Mandar dirección al Animator y disparar trigger "Hurt".
             anim.SetFloat("MoveX", face.x);
             anim.SetFloat("MoveY", face.y);
             anim.SetTrigger("Hurt");
 
+            // Log de depuración.
             Debug.Log($"Enemigo ataca a jugador, -{dmg} de vida, vida restante: {hp}");
 
+            // Si la vida llega a 0, procesamos la muerte.
             if (hp <= 0)
             {
                 isDead = true;
+
+                // Disparar animación de muerte.
                 anim.SetTrigger("Die");
+
+                // Desactivar scripts de movimiento y ataque si existen.
                 if (move) move.enabled = false;
                 if (attack) attack.enabled = false;
-                if (rb) rb.linearVelocity = Vector2.zero;
-                // desactiva colisionadores para no recibir más golpes
-                foreach (var c in cols) c.enabled = false;
 
-                // no destruimos al jugador (puedes poner GameOver aquí si quieres)
+                // Frenar el rigidbody.
+                if (rb) rb.linearVelocity = Vector2.zero;
+
+                // Desactivar colliders para no recibir más golpes.
+                foreach (var c in cols)
+                {
+                    c.enabled = false;
+                }
+
+                // Aquí se podría lanzar corutina de GameOver, etc.
                 // StartCoroutine(GameOverRoutine());
             }
         }

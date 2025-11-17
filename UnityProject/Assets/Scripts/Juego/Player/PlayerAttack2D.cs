@@ -5,77 +5,124 @@ using UnityEngine;
 public class PlayerAttack2D : MonoBehaviour
 {
     [Header("Refs")]
-    public Collider2D hitbox;          // arrastra Hitbox_Sword (BoxCollider2D)
+    // Hitbox del arma (collider de la espada).
+    public Collider2D hitbox;
 
     [Header("Ajustes")]
-    public float cooldown = 0.2f;     // tiempo entre ataques
-    public float lockTime = 0.0f;     // “clavado” breve para que el golpe se sienta
-    public KeyCode key = KeyCode.J;    // o usa botón del ratón
+    // Tiempo mínimo entre ataques.
+    public float cooldown = 0.2f;
+
+    // Tecla o botón que dispara el ataque.
+    public KeyCode key = KeyCode.J;
 
     [Header("Offsets locales de la hitbox")]
-    public Vector2 offsetSide = new(0.6f, 0f);
-    public Vector2 offsetUp = new(0f, 0.6f);
-    public Vector2 offsetDown = new(0f, -0.6f);
+    // Offset local cuando se ataca a derecha/izquierda.
+    public Vector2 offsetSide = new Vector2(0.6f, 0f);
 
-    Animator anim; Rigidbody2D rb;
-    float nextTime; float lockUntil;
+    // Offset local cuando se ataca hacia arriba.
+    public Vector2 offsetUp = new Vector2(0f, 0.6f);
+
+    // Offset local cuando se ataca hacia abajo.
+    public Vector2 offsetDown = new Vector2(0f, -0.6f);
+
+    // Componentes cacheados.
+    Animator anim;
+    Rigidbody2D rb;
+
+    // Tiempo mínimo hasta el siguiente ataque permitido.
+    float nextTime;
 
     void Awake()
     {
+        // Cacheo de componentes.
         anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
-        if (hitbox) hitbox.enabled = false; // siempre empieza apagada
+
+        // La hitbox empieza siempre desactivada.
+        if (hitbox) hitbox.enabled = false;
     }
 
     void Update()
     {
-        // bloquear un pelín el movimiento durante el swing
-        if (Time.time < lockUntil) rb.linearVelocity = Vector2.zero;
-
+        // Pulsación de ataque: tecla configurada o botón izquierdo del ratón.
         bool pressed = Input.GetKeyDown(key) || Input.GetMouseButtonDown(0);
+
+        // Si no se ha pulsado o sigue en cooldown, salimos.
         if (!pressed || Time.time < nextTime) return;
 
-        // Dirección actual desde el Animator (la actualiza tu PlayerController2D)
+        // Dirección actual de la mirada, sacada del Animator.
         Vector2 face = GetFacingFromAnimator();
 
-        // Forzamos que el BT_Attack lea esta dirección ESTE frame
+        // Actualizamos la dirección en el Animator para que el árbol de ataques la use.
         anim.SetFloat("MoveX", face.x);
         anim.SetFloat("MoveY", face.y);
-        anim.Update(0f);         // asegura que el árbol lee la dirección este frame
-        anim.ResetTrigger("Attack"); // limpia restos (por si acaso)
+
+        // Forzar update para que el BlendTree coja la dirección en este frame.
+        anim.Update(0f);
+
+        // Reset de triggers antiguos, por seguridad.
+        anim.ResetTrigger("Attack");
+
+        // Disparo del trigger de ataque.
         anim.SetTrigger("Attack");
 
-        // Pequeño “lock” para que no patine durante el golpe
-        // lockUntil = Time.time + lockTime;
+        // Actualizamos el cooldown del siguiente ataque.
         nextTime = Time.time + cooldown;
     }
 
+    // Saca una dirección cardinal a partir de los parámetros de movimiento del Animator.
     Vector2 GetFacingFromAnimator()
     {
         float mx = anim.GetFloat("MoveX");
         float my = anim.GetFloat("MoveY");
-        // cardinalizar
+
+        // Determinamos si domina el eje X o el eje Y para escoger entre 4 direcciones.
         if (Mathf.Abs(mx) > Mathf.Abs(my))
+        {
+            // Izquierda / derecha.
             return new Vector2(Mathf.Sign(mx), 0f);
+        }
         else
+        {
+            // Arriba / abajo.
             return new Vector2(0f, Mathf.Sign(my));
+        }
     }
 
-    // --- Llamadas desde Animation Events en los clips Attack_* ---
+    // Llamado desde eventos de animación en los clips Attack_* para encender la hitbox.
     public void EnableHitbox()
     {
         if (!hitbox) return;
-        // recolocar según la dirección actual
-        Vector2 face = GetFacingFromAnimator();
-        Transform t = hitbox.transform;
-        if (face.y > 0) t.localPosition = offsetUp;
-        else if (face.y < 0) t.localPosition = offsetDown;
-        else if (face.x > 0) t.localPosition = offsetSide;
-        else t.localPosition = new(-offsetSide.x, offsetSide.y);
 
+        // Obtenemos la dirección actual de la cara.
+        Vector2 face = GetFacingFromAnimator();
+
+        // Colocamos la hitbox según esa dirección.
+        Transform t = hitbox.transform;
+
+        if (face.y > 0f)
+        {
+            t.localPosition = offsetUp;
+        }
+        else if (face.y < 0f)
+        {
+            t.localPosition = offsetDown;
+        }
+        else if (face.x > 0f)
+        {
+            t.localPosition = offsetSide;
+        }
+        else
+        {
+            // Hacia la izquierda.
+            t.localPosition = new Vector2(-offsetSide.x, offsetSide.y);
+        }
+
+        // Activamos el collider de la hitbox.
         hitbox.enabled = true;
     }
 
+    // Llamado desde eventos de animación para apagar la hitbox al terminar el golpe.
     public void DisableHitbox()
     {
         if (hitbox) hitbox.enabled = false;
