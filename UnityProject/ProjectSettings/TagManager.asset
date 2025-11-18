@@ -57,6 +57,9 @@ TagManager:
   - name: Characters
     uniqueID: 3104927869
     locked: 0
+  - name: Props2
+    uniqueID: 3171864853
+    locked: 0
   - name: Projectiles
     uniqueID: 921849009
     locked: 0
