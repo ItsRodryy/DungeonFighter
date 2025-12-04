@@ -1,54 +1,86 @@
+using DungeonFighter.Combat;
 using UnityEngine;
-using DungeonFighter.Combat;   // Para PlayerHealth
 
+[RequireComponent(typeof(Collider2D))]
+[RequireComponent(typeof(Animator))]
 public class SpikesTrap : MonoBehaviour
 {
-    // Collider que hace daño cuando está activado
-    public Collider2D damageCollider;
+    [Header("Daño")]
+    [SerializeField] private int damage = 1;
 
-    // Si los pinchos están activos (lo encienden los Animation Events)
-    bool active;
+    // Jugador que está pisando este pincho (si hay)
+    PlayerHealth playerInside;
+
+    // Ventana de daño activa (pinchos arriba)
+    bool damageWindowActive;
+
+    // Para que solo golpee una vez por subida
+    bool alreadyHitThisWindow;
+
+    Collider2D col;
 
     void Awake()
     {
-        if (damageCollider) damageCollider.enabled = false;
+        col = GetComponent<Collider2D>();
+        col.isTrigger = true;    // importante: trigger
     }
 
-    // Llamado EXACTAMENTE desde Animation Event cuando los pinchos están ARRIBA
-    public void EnableDamage()
+    // ---------------- TRIGGERS ----------------
+
+    private void OnTriggerEnter2D(Collider2D other)
     {
-        active = true;
-        if (damageCollider) damageCollider.enabled = true;
+        if (!other.CompareTag("Player")) return;
+
+        playerInside = other.GetComponentInParent<PlayerHealth>();
+        if (playerInside == null) return;
+
+        // Si entramos mientras la ventana está activa, pegar ya
+        if (damageWindowActive && !alreadyHitThisWindow)
+        {
+            HitPlayer();
+        }
     }
 
-    // Llamado EXACTAMENTE desde Animation Event cuando los pinchos BAJAN
-    public void DisableDamage()
+    private void OnTriggerExit2D(Collider2D other)
     {
-        active = false;
-        if (damageCollider) damageCollider.enabled = false;
-    }
-
-    // Si el jugador entra o se queda dentro mientras están arriba ? daño
-    void OnTriggerEnter2D(Collider2D other)
-    {
-        TryKill(other);
-    }
-
-    void OnTriggerStay2D(Collider2D other)
-    {
-        TryKill(other);
-    }
-
-    void TryKill(Collider2D other)
-    {
-        if (!active) return;
         if (!other.CompareTag("Player")) return;
 
         var hp = other.GetComponentInParent<PlayerHealth>();
-        if (hp != null)
+        if (hp == playerInside)
         {
-            // LLAMADA 100% REAL A TU FUNCIÓN AUTÉNTICA
-            hp.TakeDamage(999, transform.position);
+            playerInside = null;
         }
+    }
+
+    // ---------------- EVENTOS DE ANIMACIÓN ----------------
+
+    // Llamado en el frame donde los pinchos ESTÁN ARRIBA
+    public void EnableDamage()
+    {
+        damageWindowActive = true;
+        alreadyHitThisWindow = false;
+
+        // Si el jugador ya estaba encima cuando suben, pegar aquí
+        if (playerInside != null && !alreadyHitThisWindow)
+        {
+            HitPlayer();
+        }
+    }
+
+    // Llamado en el frame donde los pinchos BAJAN
+    public void DisableDamage()
+    {
+        damageWindowActive = false;
+        alreadyHitThisWindow = false;
+    }
+
+    // ---------------- LÓGICA DE DAÑO ----------------
+
+    void HitPlayer()
+    {
+        if (playerInside == null) return;
+
+        playerInside.TakeDamage(damage, transform.position);
+        alreadyHitThisWindow = true;
     }
 }

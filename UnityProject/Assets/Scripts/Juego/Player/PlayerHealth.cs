@@ -1,5 +1,5 @@
 using UnityEngine;
-using DungeonFighter.Combat;
+using UnityEngine.SceneManagement;
 
 namespace DungeonFighter.Combat
 {
@@ -29,6 +29,10 @@ namespace DungeonFighter.Combat
         // Scripts de movimiento y ataque del jugador, para desactivarlos al morir.
         MonoBehaviour move;   // Esperado: PlayerController2D.
         MonoBehaviour attack; // Esperado: PlayerAttack2D.
+
+        [Header("Game Over")]
+        [SerializeField] float gameOverDelay = 1.0f;   // segundos de espera antes de cargar GameOver
+        bool gameOverLoading;
 
         void Awake()
         {
@@ -109,9 +113,22 @@ namespace DungeonFighter.Combat
                     c.enabled = false;
                 }
 
-                // Aquí se podría lanzar corutina de GameOver, etc.
-                // StartCoroutine(GameOverRoutine());
+                // Lanzar escena de Game Over tras un pequeño delay.
+                if (!gameOverLoading)
+                {
+                    gameOverLoading = true;
+                    StartCoroutine(LoadGameOverAfterDelay());
+                }
             }
+        }
+
+        System.Collections.IEnumerator LoadGameOverAfterDelay()
+        {
+            // Espera a que acabe (más o menos) la animación de muerte.
+            yield return new WaitForSeconds(gameOverDelay);
+
+            // Cargar escena GameOver (asegúrate de que se llama EXACTO "GameOver").
+            SceneManager.LoadScene("GameOver");
         }
 
         // Cura al jugador a tope de vida (usado por el cofre).

@@ -1,12 +1,5 @@
 fileFormatVersion: 2
-guid: dfafcaa61d7afae44b2813914fc9f6d4
-AssetOrigin:
-  serializedVersion: 1
-  productId: 301753
-  packageName: Cute Fantasy Dungeon - 16x16 top down asset pack
-  packageVersion: 1.0
-  assetPath: Assets/Kenmi/Cute Fantasy Dungeon - 16x16 top down asset pack/Sprites/Dungeon_2/Floor_Spikes_2.png
-  uploadId: 706198
+guid: 9ef5d3fa7ae77254398598ffa491803c
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
