@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+// Controlamos el menú principal, Usuario y Admin
 public class MenuPrincipalUI : MonoBehaviour
 {
     [Header("Servicios")]
@@ -26,36 +27,46 @@ public class MenuPrincipalUI : MonoBehaviour
     public TMP_Text txtListado;
     public Button btnCerrarSesionAdmin;
 
+    // Start es async porque para poder hablar con Firestore
     private async void Start()
     {
         try
         {
+            // Si no se ha asignado en el inspector, lo buscamos en la escena
             if (!gameSave) gameSave = Object.FindFirstObjectByType<GameSaveServicio>();
+
+            // Si no hay sesión, volvemos a Login/Registro
             if (gameSave == null || string.IsNullOrEmpty(gameSave.Uid) || string.IsNullOrEmpty(gameSave.IdToken))
             {
                 SceneManager.LoadScene("LoginRegistro");
                 return;
             }
 
-            // 1)
+            // Usuario
             FirestoreCliente.UsuarioPerfil perfil = null;
             try
             {
                 perfil = await gameSave.firestore.GetUsuarioPerfilAsync(gameSave.IdToken, gameSave.Uid);
                 if (txtBienvenida && perfil != null)
-                    txtBienvenida.text = $"¡Bienvenido, {perfil.nombreUsuario}!";
+                    txtBienvenida.text = $"¡Qué dise er máquina, {perfil.nombreUsuario}!";
             }
-            catch { } // No parto el menú si falla
+            catch
+            {
+                // Si falla Firestore, no muestro el nombre
+            }
 
             bool esAdmin = perfil != null && perfil.esAdmin;
 
-            // 2) Mostramos Admin o Usuario
+            // Panel Admin o Usuario según el rol
             if (panelAdmin) panelAdmin.SetActive(esAdmin);
             if (panelUsuario) panelUsuario.SetActive(!esAdmin);
 
-            // 3) Botones Usuario
+            // Botones Usuario
+
             if (btnNuevaPartida)
-                btnNuevaPartida.onClick.AddListener(() => SceneManager.LoadScene("Juego"));
+                btnNuevaPartida.onClick.AddListener(() =>
+                    SceneManager.LoadScene("Juego")
+                );
 
             if (btnCargarPartida)
                 btnCargarPartida.onClick.AddListener(async () =>
@@ -79,17 +90,20 @@ public class MenuPrincipalUI : MonoBehaviour
                     SceneManager.LoadScene("LoginRegistro");
                 });
 
-            // 4) Botones Admin
+            // Botones Admin
+
+            // Listar Partidas (Hasta 5)
             if (btnListarPartidas)
                 btnListarPartidas.onClick.AddListener(async () =>
                 {
                     if (txtListado) txtListado.text = "Cargando...";
                     try
                     {
-                        var lista = await gameSave.firestore.ListarPartidasAsync(gameSave.IdToken, 100);
+                        var lista = await gameSave.firestore.ListarPartidasAsync(gameSave.IdToken, 5);
                         if (txtListado)
                             txtListado.text = string.Join("\n", lista.Select(e =>
-                                $"{e.uid} | {e.partida.nombrePartida} | {e.partida.datosJugador.nombreEscena}"));
+                                $"{e.uid} | {e.partida.nombrePartida} | {e.partida.datosJugador.nombreEscena}"
+                            ));
                     }
                     catch (System.Exception ex)
                     {
@@ -97,19 +111,24 @@ public class MenuPrincipalUI : MonoBehaviour
                     }
                 });
 
+            // Eliminamos partida por UID escrito ese panel
             if (btnEliminarUID)
                 btnEliminarUID.onClick.AddListener(async () =>
                 {
                     var uid = inputUid ? inputUid.text.Trim() : "";
-                    if (string.IsNullOrEmpty(uid)) { if (txtListado) txtListado.text = "UID vacío"; return; }
+                    if (string.IsNullOrEmpty(uid))
+                    {
+                        if (txtListado) txtListado.text = "UID Vacío";
+                        return;
+                    }
                     try
                     {
                         await gameSave.firestore.EliminarPartidaAsync(gameSave.IdToken, uid);
-                        if (txtListado) txtListado.text = "Eliminado. Pulsa 'Listar' para refrescar.";
+                        if (txtListado) txtListado.text = "Eliminado. Pulsa 'Listar' para actualizar.";
                     }
                     catch (System.Exception ex)
                     {
-                        if (txtListado) txtListado.text = "Error eliminando: " + ex.Message;
+                        if (txtListado) txtListado.text = "Error Eliminando: " + ex.Message;
                     }
                 });
 
@@ -122,9 +141,9 @@ public class MenuPrincipalUI : MonoBehaviour
         }
         catch (System.Exception ex)
         {
-            // Última red de seguridad: mantenemos el juego vivo y avisamos en consola
+            // Última red de seguridad para no partir el juego si algo falla en Start
             Debug.LogError("MenuPrincipalUI.Start fallo: " + ex);
-            if (txtListado) txtListado.text = "Error en menú: " + ex.Message;
+            if (txtListado) txtListado.text = "Error en Menú: " + ex.Message;
         }
     }
 }

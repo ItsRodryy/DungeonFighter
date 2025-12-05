@@ -19,6 +19,8 @@ namespace DungeonFighter.Combat
         // Flag para marcar que el jugador ya está muerto.
         bool isDead;
 
+        public int HPActual => hp;
+
         // Referencias a componentes.
         Animator anim;
         Rigidbody2D rb;

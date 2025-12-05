@@ -7,6 +7,10 @@ using DungeonFighter.Combat; // Para PlayerHealth y EnemyMeleeDamage.
 [RequireComponent(typeof(Collider2D))]
 public class EnemyChase2D : MonoBehaviour
 {
+
+    [Header("Distancia mínima al jugador")]
+    public float minDistanceFromPlayer = 0.6f;  // prueba 0.6–0.8
+
     [Header("Referencias")]
     // Transform del jugador. Si está a null, se busca por tag "Player".
     public Transform player;
@@ -180,6 +184,9 @@ public class EnemyChase2D : MonoBehaviour
         Vector2 pos = rb.position;
         Vector2 toP = (Vector2)player.position - pos;
         float dist = toP.magnitude;
+        // Si estamos demasiado cerca del jugador, lo marcamos
+        bool tooClose = dist <= minDistanceFromPlayer;
+
 
         // Comprobación de si el jugador está dentro del rango de aggro.
         bool inAggro = dist <= aggroTiles;
@@ -216,16 +223,28 @@ public class EnemyChase2D : MonoBehaviour
         // Lógica de movimiento o ataque según si está persiguiendo.
         if (chasing)
         {
-            // Si estamos a rango de ataque y ha pasado el cooldown, atacamos.
-            if (dist <= attackRangeTiles && Time.time >= lastAttackTime + attackCooldown)
+            // Si estamos ya muy cerca del jugador, NO seguimos avanzando más.
+            if (tooClose)
             {
+                input = Vector2.zero;
+                rb.linearVelocity = Vector2.zero;
+
+                // Pero desde aquí sí que podemos atacar si toca.
+                if (dist <= attackRangeTiles && Time.time >= lastAttackTime + attackCooldown)
+                {
+                    TriggerAttack(toP);
+                }
+            }
+            else if (dist <= attackRangeTiles && Time.time >= lastAttackTime + attackCooldown)
+            {
+                // Aún no estamos pegados, pero ya en rango de ataque.
                 input = Vector2.zero;
                 rb.linearVelocity = Vector2.zero;
                 TriggerAttack(toP);
             }
             else
             {
-                // Dirección deseada hacia el jugador (normalizada).
+                // Persecución normal hacia el jugador.
                 Vector2 desired = toP.normalized;
 
                 // Ajustamos esa dirección para evitar paredes.
@@ -237,6 +256,7 @@ public class EnemyChase2D : MonoBehaviour
             // No persigue: se queda quieto.
             input = Vector2.zero;
         }
+
 
         // Actualizamos dirección de mirada (solo 4 direcciones cardinales).
         if (input.sqrMagnitude > 0.001f)

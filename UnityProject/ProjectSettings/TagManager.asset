@@ -18,8 +18,8 @@ TagManager:
   - L_Enemy
   - L_Wall
   - L_Projectile
-  - 
-  - 
+  - L_PlayerAttack
+  - L_EnemyAttack
   - 
   - 
   - 
