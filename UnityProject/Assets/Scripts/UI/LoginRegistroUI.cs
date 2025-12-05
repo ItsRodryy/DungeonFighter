@@ -37,12 +37,22 @@ public class LoginRegistroUI : MonoBehaviour
 
     private void Start()
     {
-        // Actualizamos el mensaje de error al entrar
+        if (!gameSave) gameSave = Object.FindFirstObjectByType<GameSaveServicio>();
+
+        // Si ya hay sesión guardada, saltamos el login
+        if (gameSave != null &&
+            !string.IsNullOrEmpty(gameSave.Uid) &&
+            !string.IsNullOrEmpty(gameSave.IdToken))
+        {
+            SceneManager.LoadScene("MenuPrincipal");
+            return;
+        }
+
         if (txtError) txtError.text = "";
-        // Mostramos los campos del registro si estamos en ese modo
         if (panelRegistro) panelRegistro.SetActive(modoRegistro);
         if (chkAdmin) chkAdmin.gameObject.SetActive(modoRegistro);
     }
+
 
     // Botón Cambiar a Registro o Cambiar a Login
     public void ToggleModo()

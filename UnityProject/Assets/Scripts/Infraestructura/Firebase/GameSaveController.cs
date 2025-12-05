@@ -36,7 +36,7 @@ public class GameSaveController : MonoBehaviour
 
         var datosJugador = new FirestoreCliente.DatosJugador
         {
-            vida = playerHealth.HPActual,
+            vida = playerHealth.CurrentHP,
             vidaMaxima = playerHealth.maxHP,
             posX = pos.x,
             posY = pos.y,

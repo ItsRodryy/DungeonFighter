@@ -1,7 +1,9 @@
 using UnityEngine;
+using System.Collections.Generic;
+using DungeonFighter.Combat;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.SceneManagement;
 
 public class JuegoUI : MonoBehaviour
 {
@@ -114,14 +116,85 @@ public class JuegoUI : MonoBehaviour
     }
 
     // Llamado por el botón "Guardar partida"
-    public void OnSaveButton()
+    public async void OnSaveButton()
     {
-        // Aquí luego meterás tu guardado real (Firebase, etc.)
-        Debug.Log("Guardar partida (TODO)");
+        // Feedback rápido
+        ShowMessage("Guardando partida...");
 
-        // Pequeño feedback visual
-        ShowMessage("PARTIDA GUARDADA");
+        try
+        {
+            // Buscamos el servicio de guardado
+            var gameSave = Object.FindFirstObjectByType<GameSaveServicio>();
+            if (gameSave == null ||
+                string.IsNullOrEmpty(gameSave.Uid) ||
+                string.IsNullOrEmpty(gameSave.IdToken))
+            {
+                ShowMessage("No hay usuario logueado.");
+                Debug.LogWarning("OnSaveButton: GameSaveServicio o sesión nula.");
+                return;
+            }
+
+            // Buscamos al jugador
+            var playerGO = GameObject.FindGameObjectWithTag("Player");
+            if (playerGO == null)
+            {
+                ShowMessage("No encuentro al jugador.");
+                Debug.LogWarning("OnSaveButton: no se ha encontrado GameObject con tag Player.");
+                return;
+            }
+
+            var hpComp = playerGO.GetComponent<PlayerHealth>();
+            if (hpComp == null)
+            {
+                ShowMessage("Jugador sin PlayerHealth.");
+                Debug.LogWarning("OnSaveButton: el jugador no tiene PlayerHealth.");
+                return;
+            }
+
+            var pos = playerGO.transform.position;
+            var escena = SceneManager.GetActiveScene().name;
+
+            // Montamos el objeto PartidaGuardada
+            var partida = new FirestoreCliente.PartidaGuardada
+            {
+                nombrePartida = "Partida 1", // siempre la misma => UNA partida por usuario
+
+                datosJugador = new FirestoreCliente.DatosJugador
+                {
+                    vida = hpComp.CurrentHP,
+                    vidaMaxima = hpComp.maxHP,
+                    posX = pos.x,
+                    posY = pos.y,
+                    nombreEscena = escena
+                },
+
+                datosInventario = new FirestoreCliente.DatosInventario
+                {
+                    monedas = 0,
+                    llaves = 0,
+                    pociones = 0
+                },
+
+                estadoMundo = new FirestoreCliente.EstadoMundo
+                {
+                    enemigosEliminados = new List<string>(),
+                    cofresAbiertos = new List<string>()
+                }
+            };
+
+            // Guardar en Firestore en /partidasGuardadas/{uid}
+            await gameSave.GuardarAsync(partida);
+
+            ShowMessage("Partida guardada.");
+            Debug.Log("Partida guardada correctamente en Firestore.");
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError("Error guardando partida: " + ex);
+            ShowMessage("Error al guardar partida.");
+        }
     }
+
 
     // Llamado por el botón "Menú principal"
     public void OnMenuPrincipalButton()
