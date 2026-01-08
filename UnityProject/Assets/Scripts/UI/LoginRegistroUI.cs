@@ -1,3 +1,4 @@
+﻿using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -7,20 +8,16 @@ using UnityEngine.UI;
 public class LoginRegistroUI : MonoBehaviour
 {
     [Header("Servicios")]
-    // Servicio para gestionar el login y el registro
     public GameSaveServicio gameSave;
 
     [Header("Inputs")]
-    // Campos de entrada
     public TMP_InputField inpCorreo;
     public TMP_InputField inpPass;
     public TMP_InputField inpNombre;
 
     [Header("UI")]
     public TMP_Text txtError;
-    // Panel adicional Registro
     public GameObject panelRegistro;
-    // Texto del bot�n para cambiar de login a registro
     public TMP_Text btnCambiarModoTexto;
 
     [Header("Registro como Admin")]
@@ -31,7 +28,6 @@ public class LoginRegistroUI : MonoBehaviour
 
     private void Awake()
     {
-        // Si no se ha asignado el servicio en el inspector, lo buscamos en escena
         if (!gameSave) gameSave = Object.FindFirstObjectByType<GameSaveServicio>();
     }
 
@@ -39,7 +35,7 @@ public class LoginRegistroUI : MonoBehaviour
     {
         if (!gameSave) gameSave = Object.FindFirstObjectByType<GameSaveServicio>();
 
-        // Si ya hay sesi�n guardada, saltamos el login
+        // Si ya hay sesión guardada, saltamos el login
         if (gameSave != null &&
             !string.IsNullOrEmpty(gameSave.Uid) &&
             !string.IsNullOrEmpty(gameSave.IdToken))
@@ -51,13 +47,14 @@ public class LoginRegistroUI : MonoBehaviour
         if (txtError) txtError.text = "";
         if (panelRegistro) panelRegistro.SetActive(modoRegistro);
         if (chkAdmin) chkAdmin.gameObject.SetActive(modoRegistro);
+
+        if (btnCambiarModoTexto)
+            btnCambiarModoTexto.text = modoRegistro ? "Ir a Login" : "Ir a Registro";
     }
 
-
-    // Bot�n Cambiar a Registro o Cambiar a Login
+    // Botón Cambiar a Registro o Cambiar a Login
     public void ToggleModo()
     {
-        // Cambiamos el modo y actualizamos la UI
         modoRegistro = !modoRegistro;
 
         if (panelRegistro) panelRegistro.SetActive(modoRegistro);
@@ -68,7 +65,7 @@ public class LoginRegistroUI : MonoBehaviour
             btnCambiarModoTexto.text = modoRegistro ? "Ir a Login" : "Ir a Registro";
     }
 
-    // Bot�n Aceptar
+    // Botón Aceptar
     public async void OnClickAceptar()
     {
         // Aseguramos el servicio disponible
@@ -80,15 +77,33 @@ public class LoginRegistroUI : MonoBehaviour
         }
 
         // Leemos los campos de la UI
-        var correo = inpCorreo ? inpCorreo.text.Trim() : "";
-        var pass = inpPass ? inpPass.text.Trim() : "";
-        var nombre = inpNombre ? inpNombre.text.Trim() : "";
-        var quiereAdmin = chkAdmin && chkAdmin.isOn;
+        string correo = inpCorreo ? inpCorreo.text.Trim() : "";
+        string pass = inpPass ? inpPass.text : "";           // NO Trim aquí por si hay espacios intencionados
+        string nombre = inpNombre ? inpNombre.text.Trim() : "";
+        bool quiereAdmin = chkAdmin && chkAdmin.isOn;
 
-        // Validaci�n para Login y Registro
-        if (string.IsNullOrEmpty(correo) || string.IsNullOrEmpty(pass))
+        // ✅ Validaciones ANTES de llamar a Firebase
+        if (string.IsNullOrWhiteSpace(correo))
         {
-            if (txtError) txtError.text = "Rellena el correo y la contrase�a.";
+            if (txtError) txtError.text = "Escribe el correo.";
+            return;
+        }
+
+        if (!EsCorreoValido(correo))
+        {
+            if (txtError) txtError.text = "Correo inválido (formato).";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(pass))
+        {
+            if (txtError) txtError.text = "Escribe la contraseña.";
+            return;
+        }
+
+        if (modoRegistro && string.IsNullOrWhiteSpace(nombre))
+        {
+            if (txtError) txtError.text = "Escribe un nombre de usuario.";
             return;
         }
 
@@ -98,31 +113,28 @@ public class LoginRegistroUI : MonoBehaviour
         {
             if (modoRegistro)
             {
-                // Modo Registro, comprobamos si quiere registrarse como admin
+                // Registro (Admin opcional)
                 bool esAdmin = false;
 
                 if (quiereAdmin)
                 {
-                    // Contrase�a de admin para el que se quiera registrar como admin
+                    // Tu lógica actual: usando pass como "clave admin"
                     if (pass == "admin123456")
                         esAdmin = true;
                     else
                     {
-                        if (txtError) txtError.text = "Ingresa la contrase�a de admin :(";
+                        if (txtError) txtError.text = "Ingresa la contraseña de admin :(";
                         return;
                     }
                 }
 
-                // Registro de Usuario nuevo
                 await gameSave.RegistroAsync(correo, pass, nombre, esAdmin);
             }
             else
             {
-                // Modo Login
                 await gameSave.LoginAsync(correo, pass);
             }
 
-            // Si va bien todo, pasamos al men� principal
             SceneManager.LoadScene("MenuPrincipal");
         }
         catch (System.Exception ex)
@@ -130,8 +142,30 @@ public class LoginRegistroUI : MonoBehaviour
             Debug.LogError("Error en login/registro: " + ex);
 
             if (txtError)
-                txtError.text = "Error con las credenciales...";
+                txtError.text = TraducirErrorFirebase(ex.Message);
         }
+    }
 
+    // Validación simple de formato de correo
+    bool EsCorreoValido(string correo)
+    {
+        return Regex.IsMatch(correo, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+    }
+
+    // Traduce errores típicos de Firebase a mensajes útiles
+    string TraducirErrorFirebase(string msg)
+    {
+        if (string.IsNullOrEmpty(msg)) return "Error con las credenciales.";
+
+        string m = msg.ToUpperInvariant();
+
+        if (m.Contains("INVALID_EMAIL")) return "Correo inválido.";
+        if (m.Contains("MISSING_PASSWORD")) return "Falta la contraseña.";
+        if (m.Contains("WEAK_PASSWORD")) return "Contraseña demasiado débil.";
+        if (m.Contains("EMAIL_NOT_FOUND")) return "Ese usuario no existe.";
+        if (m.Contains("INVALID_PASSWORD") || m.Contains("INVALID_LOGIN_CREDENTIALS")) return "Contraseña incorrecta.";
+        if (m.Contains("EMAIL_EXISTS")) return "Ese correo ya está registrado.";
+
+        return "Error con las credenciales.";
     }
 }

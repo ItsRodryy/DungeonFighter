@@ -65,6 +65,9 @@ public class JuegoUI : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             TogglePause();
+            if (GestorDeAudio.I != null)
+                GestorDeAudio.I.ReproducirUIClick();
+
         }
     }
 

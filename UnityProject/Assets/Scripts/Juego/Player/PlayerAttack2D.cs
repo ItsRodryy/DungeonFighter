@@ -66,6 +66,10 @@ public class PlayerAttack2D : MonoBehaviour
         // Disparo del trigger de ataque.
         anim.SetTrigger("Attack");
 
+        if (GestorDeAudio.I != null)
+            GestorDeAudio.I.ReproducirGolpe();
+
+
         // Actualizamos el cooldown del siguiente ataque.
         nextTime = Time.time + cooldown;
     }

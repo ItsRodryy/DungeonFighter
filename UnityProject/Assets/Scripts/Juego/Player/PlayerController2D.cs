@@ -87,6 +87,10 @@ public class PlayerController2D : MonoBehaviour
 
         // Flip horizontal del sprite si mira a la izquierda en eje X.
         sr.flipX = (faceDir.y == 0f) && (faceDir.x < 0f);
+
+        if (GestorDeAudio.I != null)
+            GestorDeAudio.I.SetPasos(moving);
+
     }
 
     void FixedUpdate()

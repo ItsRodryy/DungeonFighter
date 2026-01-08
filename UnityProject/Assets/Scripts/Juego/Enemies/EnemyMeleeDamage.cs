@@ -58,6 +58,10 @@ namespace DungeonFighter.Combat
                 // Aplicamos daño al jugador.
                 hp.TakeDamage(damage, transform.position);
 
+                if (GestorDeAudio.I != null)
+                    GestorDeAudio.I.ReproducirGolpeEnemigo();
+
+
                 // Marcamos que ya hemos golpeado en este swing.
                 didHitThisSwing = true;
             }

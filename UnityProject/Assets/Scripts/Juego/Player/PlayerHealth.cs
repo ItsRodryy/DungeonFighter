@@ -103,6 +103,10 @@ namespace DungeonFighter.Combat
                 // Disparar animación de muerte.
                 anim.SetTrigger("Die");
 
+                if (GestorDeAudio.I != null)
+                    GestorDeAudio.I.ReproducirDeadUnaVez();
+
+
                 // Desactivar scripts de movimiento y ataque si existen.
                 if (move) move.enabled = false;
                 if (attack) attack.enabled = false;
@@ -152,5 +156,17 @@ namespace DungeonFighter.Combat
             // Log de depuración.
             Debug.Log($"Cofre cura al jugador: vida restaurada a {hp}/{maxHP}");
         }
+
+        public void AplicarCarga(int vidaCargada, int vidaMaxCargada)
+        {
+            if (isDead) return;
+
+            maxHP = Mathf.Max(1, vidaMaxCargada);
+            hp = Mathf.Clamp(vidaCargada, 0, maxHP);
+
+            if (JuegoUI.Instance != null)
+                JuegoUI.Instance.SetHealth(hp, maxHP);
+        }
+
     }
 }

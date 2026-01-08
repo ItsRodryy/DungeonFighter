@@ -7,7 +7,6 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 
 // Cliente REST para Firestore
-
 // Colecciones:
 // - usuarios/{uid} -> email, nombreUsuario, fechaCreacion, esAdmin, activo
 // - partidasGuardadas/{uid} -> nombrePartida, ultimaActualizacion, datosJugador, datosInventario, estadoMundo
@@ -16,11 +15,11 @@ public class FirestoreCliente : MonoBehaviour
 {
     public FirebaseAjustes ajustes;
 
-    // Construímos la URL del documento
+    // Construimos la URL del documento
     string DocUrl(string col, string id) =>
         $"https://firestore.googleapis.com/v1/projects/{ajustes.projectId}/databases/(default)/documents/{col}/{id}";
 
-    // MODELOS
+    // ========= MODELOS =========
 
     [System.Serializable]
     public class UsuarioPerfil
@@ -33,6 +32,7 @@ public class FirestoreCliente : MonoBehaviour
     [System.Serializable] public class DatosJugador { public int vida, vidaMaxima; public float posX, posY; public string nombreEscena; }
     [System.Serializable] public class DatosInventario { public int monedas, llaves, pociones; }
     [System.Serializable] public class EstadoMundo { public List<string> enemigosEliminados; public List<string> cofresAbiertos; }
+
     [System.Serializable]
     public class PartidaGuardada
     {
@@ -42,19 +42,23 @@ public class FirestoreCliente : MonoBehaviour
         public EstadoMundo estadoMundo;
     }
 
-    // CORE HTTP
+    // ========= CORE HTTP =========
 
     // Enviamos JSON con UnityWebRequest
     async Task<string> EnviarJsonAsync(string url, string metodo, string json, string idToken = null)
     {
         var req = new UnityWebRequest(url, metodo);
+
+        // Solo metemos body si hay json
         if (json != null)
         {
             var body = Encoding.UTF8.GetBytes(json);
             req.uploadHandler = new UploadHandlerRaw(body);
             req.SetRequestHeader("Content-Type", "application/json");
         }
+
         req.downloadHandler = new DownloadHandlerBuffer();
+
         if (!string.IsNullOrEmpty(idToken))
             req.SetRequestHeader("Authorization", $"Bearer {idToken}");
 
@@ -68,23 +72,25 @@ public class FirestoreCliente : MonoBehaviour
         return req.downloadHandler.text;
     }
 
-    // USUARIOS
+    // ========= USUARIOS =========
 
     // Crea/actualiza /usuarios/{uid} con el ROL indicado
     public async Task UpsertUsuarioAsync(string idToken, string uid, string email, string nombreUsuario, bool esAdmin)
     {
         var url = DocUrl("usuarios", uid);
+
         var payload = new
         {
             fields = new
             {
-                email = new { stringValue = email },
+                email = new { stringValue = email ?? "" },
                 nombreUsuario = new { stringValue = nombreUsuario ?? "" },
                 fechaCreacion = new { timestampValue = System.DateTime.UtcNow.ToString("o") },
                 esAdmin = new { booleanValue = esAdmin },
                 activo = new { booleanValue = true }
             }
         };
+
         var body = JsonConvert.SerializeObject(payload);
         await EnviarJsonAsync(url, "PATCH", body, idToken);
     }
@@ -102,18 +108,64 @@ public class FirestoreCliente : MonoBehaviour
         {
             email = GetString(f, "email"),
             nombreUsuario = GetString(f, "nombreUsuario"),
-            esAdmin = (bool?)f["esAdmin"]?["booleanValue"] ?? false
+            esAdmin = GetBool(f, "esAdmin")
         };
     }
 
-    // PARTIDAS
+    // Lista usuarios (/usuarios) usando runQuery (POST)
+    public async Task<List<(string uid, UsuarioPerfil perfil)>> ListarUsuariosAsync(string idToken, int pageSize = 200)
+    {
+        var url = $"https://firestore.googleapis.com/v1/projects/{ajustes.projectId}/databases/(default)/documents:runQuery";
+
+        var bodyObj = new
+        {
+            structuredQuery = new
+            {
+                from = new[] { new { collectionId = "usuarios" } },
+                limit = pageSize
+            }
+        };
+
+        var body = JsonConvert.SerializeObject(bodyObj);
+        var txt = await EnviarJsonAsync(url, UnityWebRequest.kHttpVerbPOST, body, idToken);
+
+        var arr = JArray.Parse(txt);
+        var list = new List<(string, UsuarioPerfil)>();
+
+        foreach (var r in arr)
+        {
+            var doc = r["document"];
+            if (doc == null) continue;
+
+            var name = doc["name"]?.ToString();
+            if (string.IsNullOrEmpty(name)) continue;
+
+            var uid = name.Substring(name.LastIndexOf('/') + 1);
+
+            var f = doc["fields"];
+            if (f == null) continue;
+
+            var perfil = new UsuarioPerfil
+            {
+                email = GetString(f, "email"),
+                nombreUsuario = GetString(f, "nombreUsuario"),
+                esAdmin = GetBool(f, "esAdmin")
+            };
+
+            list.Add((uid, perfil));
+        }
+
+        return list;
+    }
+
+    // ========= PARTIDAS =========
 
     // Convertimos nuestro objeto C# al formato de Firestore REST
     object ToFirestore(PartidaGuardada p) => new
     {
         fields = new
         {
-            nombrePartida = new { stringValue = p.nombrePartida },
+            nombrePartida = new { stringValue = p.nombrePartida ?? "" },
 
             // datosJugador
             datosJugador = new
@@ -124,10 +176,9 @@ public class FirestoreCliente : MonoBehaviour
                     {
                         vida = new { integerValue = p.datosJugador.vida.ToString() },
                         vidaMaxima = new { integerValue = p.datosJugador.vidaMaxima.ToString() },
-                        // posX/posY
                         posX = new { doubleValue = p.datosJugador.posX },
                         posY = new { doubleValue = p.datosJugador.posY },
-                        nombreEscena = new { stringValue = p.datosJugador.nombreEscena }
+                        nombreEscena = new { stringValue = p.datosJugador.nombreEscena ?? "Juego" }
                     }
                 }
             },
@@ -173,12 +224,12 @@ public class FirestoreCliente : MonoBehaviour
                 }
             },
 
-            // Marcamos el estado del último guardado
+            // último guardado
             ultimaActualizacion = new { timestampValue = System.DateTime.UtcNow.ToString("o") }
         }
     };
 
-    // Guarda sobrescribiendo en /partidasGuardadas/{uid} con el último estado
+    // Guarda sobrescribiendo en /partidasGuardadas/{uid}
     public async Task GuardarPartidaAsync(string idToken, string uid, PartidaGuardada p)
     {
         var url = DocUrl("partidasGuardadas", uid);
@@ -186,13 +237,12 @@ public class FirestoreCliente : MonoBehaviour
         await EnviarJsonAsync(url, "PATCH", body, idToken);
     }
 
-    // Carga /partidasGuardadas/{uid} convertimos a nuestro objeto C#
+    // Carga /partidasGuardadas/{uid}
     public async Task<PartidaGuardada> CargarPartidaAsync(string idToken, string uid)
     {
         var url = DocUrl("partidasGuardadas", uid);
         var txt = await EnviarJsonAsync(url, UnityWebRequest.kHttpVerbGET, null, idToken);
 
-        // Parseo con JObject
         var doc = JObject.Parse(txt);
         var f = doc["fields"] ?? throw new System.Exception("Documento sin 'fields'");
 
@@ -226,12 +276,13 @@ public class FirestoreCliente : MonoBehaviour
         return p;
     }
 
-    // Panel Admin
+    // ========= PANEL ADMIN =========
 
-    // Lista Partidas
+    // Lista Partidas (hasta pageSize)
     public async Task<List<(string uid, PartidaGuardada partida)>> ListarPartidasAsync(string idToken, int pageSize = 50)
     {
         var url = $"https://firestore.googleapis.com/v1/projects/{ajustes.projectId}/databases/(default)/documents:runQuery";
+
         var bodyObj = new
         {
             structuredQuery = new
@@ -240,17 +291,23 @@ public class FirestoreCliente : MonoBehaviour
                 limit = pageSize
             }
         };
+
         var body = JsonConvert.SerializeObject(bodyObj);
         var txt = await EnviarJsonAsync(url, UnityWebRequest.kHttpVerbPOST, body, idToken);
 
         var arr = JArray.Parse(txt);
         var list = new List<(string, PartidaGuardada)>();
+
         foreach (var r in arr)
         {
             var doc = r["document"];
             if (doc == null) continue;
+
             var name = doc["name"]?.ToString();
-            var uid = name?.Substring(name.LastIndexOf('/') + 1);
+            if (string.IsNullOrEmpty(name)) continue;
+
+            var uid = name.Substring(name.LastIndexOf('/') + 1);
+
             var f = doc["fields"];
             if (f == null) continue;
 
@@ -277,8 +334,10 @@ public class FirestoreCliente : MonoBehaviour
                     cofresAbiertos = GetArrayStrings(f["estadoMundo"]?["mapValue"]?["fields"], "cofresAbiertos")
                 }
             };
+
             list.Add((uid, p));
         }
+
         return list;
     }
 
@@ -289,10 +348,13 @@ public class FirestoreCliente : MonoBehaviour
         await EnviarJsonAsync(url, UnityWebRequest.kHttpVerbDELETE, null, idToken);
     }
 
-    // HELPERS
+    // ========= HELPERS =========
 
     static string GetString(JToken parent, string name)
         => parent?[name]?["stringValue"]?.ToString() ?? "";
+
+    static bool GetBool(JToken parent, string name)
+        => parent?[name]?["booleanValue"]?.Value<bool>() ?? false;
 
     static int GetInt(JToken parent, string name)
     {
