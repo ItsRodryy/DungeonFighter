@@ -2,67 +2,61 @@
 
 namespace DungeonFighter.Combat
 {
+    // Aplicamos daño al jugador desde una hitbox del enemigo durante una ventana de ataque
     public class EnemyMeleeDamage : MonoBehaviour
     {
-        // Daño que hace el enemigo con un golpe cuerpo a cuerpo.
         public int damage = 1;
 
-        // Indica si estamos dentro de la "ventana de daño" del swing.
         bool armed;
-
-        // Indica si en este swing ya hemos golpeado una vez.
         bool didHitThisSwing;
 
-        // Llamado desde animación al comenzar el swing.
         public void BeginSwing()
         {
+            // Activamos ventana de daño y permitimos un golpe
             armed = true;
             didHitThisSwing = false;
         }
 
-        // Llamado desde animación al terminar el swing.
         public void EndSwing()
         {
+            // Desactivamos ventana y reiniciamos flags
             armed = false;
             didHitThisSwing = false;
         }
 
-        // Cuando entra un collider dentro de la hitbox.
         void OnTriggerEnter2D(Collider2D other)
         {
             TryHit(other);
         }
 
-        // Mientras se queda dentro del trigger, seguimos intentando (por si entra en mitad del frame).
         void OnTriggerStay2D(Collider2D other)
         {
             TryHit(other);
         }
 
-        // Lógica de comprobar si podemos golpear al jugador.
         void TryHit(Collider2D other)
         {
-            // Solo dentro de la ventana de daño.
+            // Solo pegamos si estamos armados
             if (!armed) return;
 
-            // Solo un golpe por swing.
+            // Solo pegamos una vez por swing
             if (didHitThisSwing) return;
 
-            // Solo afectar a objetos con tag "Player".
+            // Solo pegamos al jugador
             if (!other.CompareTag("Player")) return;
 
-            // Buscamos PlayerHealth en el padre (por si el trigger está en un hijo).
+            // Buscamos PlayerHealth en el padre por si el collider está en un hijo
             var hp = other.GetComponentInParent<PlayerHealth>();
             if (hp)
             {
-                // Aplicamos daño al jugador.
+                // Aplicamos daño usando nuestra posición como origen
                 hp.TakeDamage(damage, transform.position);
 
+                // Reproducimos golpe enemigo si tenemos gestor
                 if (GestorDeAudio.I != null)
                     GestorDeAudio.I.ReproducirGolpeEnemigo();
 
-
-                // Marcamos que ya hemos golpeado en este swing.
+                // Marcamos que ya hemos golpeado en este swing
                 didHitThisSwing = true;
             }
         }

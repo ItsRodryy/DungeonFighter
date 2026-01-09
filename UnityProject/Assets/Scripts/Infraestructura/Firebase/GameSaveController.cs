@@ -3,37 +3,55 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+// Preparamos los datos de la partida actual y se los pasamos al GameSaveServicio
+// La idea es separar:
+// - GameSaveController coge el estado del juego (vida, posición, escena)
+// - GameSaveServicio habla con Firestore y guardar/cargar
 public class GameSaveController : MonoBehaviour
 {
     [Header("Servicios")]
-    public GameSaveServicio gameSave;      // puedes dejarlo en None en el inspector
+    // Servicio de guardado
+    public GameSaveServicio gameSave;
+
+    // Referencia a la vida del jugador
     public PlayerHealth playerHealth;
 
     [Header("Config")]
+    // Nombre de la partida que se guardará (de momento 1 por jugador)
     public string nombrePartida = "Partida 1";
 
     private void Awake()
     {
-        if (!gameSave) gameSave = Object.FindFirstObjectByType<GameSaveServicio>();
-        if (!playerHealth) playerHealth = Object.FindFirstObjectByType<PlayerHealth>();
+        // Si no se asigna en el Inspector, buscamos automáticamente el servicio en la escena
+        if (!gameSave)
+            gameSave = Object.FindFirstObjectByType<GameSaveServicio>();
+
+        // Igual que con PlayerHealth, buscamos el componente del jugador para obtener la vida y la posición.
+        if (!playerHealth)
+            playerHealth = Object.FindFirstObjectByType<PlayerHealth>();
     }
 
-    // Llamar desde el botón Guardar (menú de pausa)
+    // Llamamos desde el botón Guardar (menú de pausa)
     public async void GuardarPartida()
     {
+        // Comprobamos que exista el servicio de guardado en la escena
         if (gameSave == null)
         {
             Debug.LogError("GameSaveController: no hay GameSaveServicio en la escena.");
             return;
         }
+
+        // Comprobamos que exista el componente de vida del jugador (si no, no podemos guardar nada)
         if (playerHealth == null)
         {
             Debug.LogError("GameSaveController: no hay PlayerHealth en la escena.");
             return;
         }
 
+        // Posición actual del jugador, para reaparecer al cargar la partida
         var pos = playerHealth.transform.position;
 
+        // Datos del jugador
         var datosJugador = new FirestoreCliente.DatosJugador
         {
             vida = playerHealth.CurrentHP,
@@ -43,6 +61,7 @@ public class GameSaveController : MonoBehaviour
             nombreEscena = SceneManager.GetActiveScene().name
         };
 
+        // Datos de inventario (de momento no está implementado)
         var datosInventario = new FirestoreCliente.DatosInventario
         {
             monedas = 0,
@@ -50,12 +69,14 @@ public class GameSaveController : MonoBehaviour
             pociones = 0
         };
 
+        // Estado del mundo
         var estadoMundo = new FirestoreCliente.EstadoMundo
         {
             enemigosEliminados = new List<string>(),
             cofresAbiertos = new List<string>()
         };
 
+        // Objeto final de la partida al completo cuando ganamos el juego
         var partida = new FirestoreCliente.PartidaGuardada
         {
             nombrePartida = nombrePartida,
@@ -64,6 +85,7 @@ public class GameSaveController : MonoBehaviour
             estadoMundo = estadoMundo
         };
 
+        // Guardamos la partida en Firestore
         try
         {
             await gameSave.GuardarAsync(partida);

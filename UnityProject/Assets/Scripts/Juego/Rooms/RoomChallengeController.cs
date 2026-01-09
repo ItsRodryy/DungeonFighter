@@ -1,58 +1,53 @@
 using UnityEngine;
-using DungeonFighter.Combat;   // Para EnemyHealth
+using DungeonFighter.Combat;
 
+// Desbloqueamos un cofre cuando limpiamos la sala de enemigos
 public class RoomChallengeController : MonoBehaviour
 {
-    // Enemigos de ESTA sala (los dos goblins en la escena).
     public EnemyHealth[] enemies;
-
-    // Cofre que se desbloquea al limpiar la sala.
     public ChestHealFullHP chest;
 
-    // True cuando ya se ha completado el desafío de la sala.
     bool completed;
 
     void Start()
     {
+        // Desactivamos el script del cofre mientras esté bloqueado
         if (chest) chest.enabled = false;
     }
 
     void Update()
     {
-        // Si ya se completó una vez, no hacemos nada más.
+        // Si ya se completó no hacemos nada más
         if (completed) return;
 
-        // Contamos cuántos enemigos siguen vivos.
+        // Contamos enemigos vivos comprobando referencias no nulas
         int vivos = 0;
 
         for (int i = 0; i < enemies.Length; i++)
         {
-            // Si EnemyHealth todavía existe, es que ese enemigo sigue vivo.
             if (enemies[i] != null)
             {
                 vivos++;
             }
         }
 
-        // Si aún queda algún enemigo vivo, salimos.
+        // Si queda alguno vivo salimos
         if (vivos > 0) return;
 
-        // A partir de aquí, sabemos que la sala está limpia.
+        // Marcamos completado y desbloqueamos el cofre
         completed = true;
 
-        Debug.Log($"RoomChallengeController: sala limpia, enemigos vivos = {vivos}. Desbloqueando cofre...");
+        Debug.Log($"RoomChallengeController sala limpia enemigos vivos {vivos} desbloqueando cofre");
 
-        // Desbloqueamos el cofre, si hay.
         if (chest)
         {
             chest.Unlock();
         }
         else
         {
-            Debug.LogWarning("RoomChallengeController: no hay cofre asignado en el Inspector.");
+            Debug.LogWarning("RoomChallengeController no hay cofre asignado en el Inspector");
         }
+
         if (chest) chest.enabled = true;
     }
-
-
 }

@@ -3,35 +3,29 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController2D : MonoBehaviour
 {
-    // Velocidad de movimiento base del jugador.
     public float speed = 5f;
 
-    // Componentes cacheados.
     Rigidbody2D rb;
     Animator anim;
     SpriteRenderer sr;
 
-    // Input de movimiento actual (normalizado).
     Vector2 input;
 
-    // Dirección hacia la que mira el jugador (cardinal).
     Vector2 faceDir = Vector2.down;
 
-    // Indica si estamos en estado de movimiento (para el BlendTree).
     bool moving = false;
 
-    // Umbrales de entrada/salida del movimiento para evitar parpadeos.
     const float ENTER = 0.15f;
     const float EXIT = 0.05f;
 
     void Awake()
     {
-        // Cacheo de componentes.
+        // Cacheamos componentes
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
 
-        // Configuración típica del Rigidbody2D para topdown.
+        // Configuramos rigidbody para topdown
         rb.gravityScale = 0f;
         rb.interpolation = RigidbodyInterpolation2D.Interpolate;
         rb.freezeRotation = true;
@@ -39,7 +33,7 @@ public class PlayerController2D : MonoBehaviour
 
     void Start()
     {
-        // Hacemos que el jugador nazca mirando hacia abajo.
+        // Hacemos que el jugador nazca mirando hacia abajo
         anim.SetFloat("MoveX", 0f);
         anim.SetFloat("MoveY", -1f);
         anim.SetFloat("Speed", 0f);
@@ -47,16 +41,15 @@ public class PlayerController2D : MonoBehaviour
 
     void Update()
     {
-        // Leemos el input crudo de los ejes Horizontal/Vertical.
+        // Leemos input crudo y lo normalizamos
         input = new Vector2(
             Input.GetAxisRaw("Horizontal"),
             Input.GetAxisRaw("Vertical")
         ).normalized;
 
-        // Magnitud al cuadrado, para evitar raíz.
         float mag = input.sqrMagnitude;
 
-        // Cambio de estado de idle a moving con histéresis.
+        // Aplicamos histéresis para evitar parpadeos en idle moving
         if (!moving && mag > ENTER)
         {
             moving = true;
@@ -66,10 +59,9 @@ public class PlayerController2D : MonoBehaviour
             moving = false;
         }
 
-        // Si hay algo de input, actualizamos la dirección de mirada.
+        // Si hay input actualizamos la dirección de mirada
         if (mag > 0.001f)
         {
-            // Elegimos el eje dominante.
             if (Mathf.Abs(input.x) > Mathf.Abs(input.y))
             {
                 faceDir = new Vector2(Mathf.Sign(input.x), 0f);
@@ -80,22 +72,22 @@ public class PlayerController2D : MonoBehaviour
             }
         }
 
-        // Enviamos la dirección y si se mueve o no al Animator.
+        // Mandamos parámetros al animator
         anim.SetFloat("MoveX", faceDir.x);
         anim.SetFloat("MoveY", faceDir.y);
         anim.SetFloat("Speed", moving ? 1f : 0f);
 
-        // Flip horizontal del sprite si mira a la izquierda en eje X.
+        // Hacemos flip si miramos a la izquierda
         sr.flipX = (faceDir.y == 0f) && (faceDir.x < 0f);
 
+        // Activamos o paramos pasos según movimiento
         if (GestorDeAudio.I != null)
             GestorDeAudio.I.SetPasos(moving);
-
     }
 
     void FixedUpdate()
     {
-        // Aplicamos la velocidad en función del input y la velocidad base.
+        // Movemos el rigidbody con la velocidad configurada
         rb.linearVelocity = input * speed;
     }
 }

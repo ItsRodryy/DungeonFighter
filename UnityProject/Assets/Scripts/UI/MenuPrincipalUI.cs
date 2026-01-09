@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// Controlamos el menú principal, Usuario y Admin
+// Controlamos el menú principal y mostramos opciones según el rol del usuario
 public class MenuPrincipalUI : MonoBehaviour
 {
     [Header("Servicios")]
@@ -22,7 +22,7 @@ public class MenuPrincipalUI : MonoBehaviour
 
     [Header("Panel Admin")]
     public GameObject panelAdmin;
-    public Button btnListarPartidas;   // lo estás usando como "Listar Usuarios/Partida"
+    public Button btnListarPartidas;
     public TMP_InputField inputUid;
     public Button btnEliminarUID;
     public TMP_Text txtListado;
@@ -32,66 +32,76 @@ public class MenuPrincipalUI : MonoBehaviour
     {
         try
         {
-            // Si no se ha asignado en el inspector, lo buscamos en la escena
-            if (!gameSave) gameSave = UnityEngine.Object.FindFirstObjectByType<GameSaveServicio>();
+            // Si no lo asignamos en el inspector lo buscamos en la escena
+            if (!gameSave)
+                gameSave = UnityEngine.Object.FindFirstObjectByType<GameSaveServicio>();
 
-            // Si no hay sesión, volvemos a Login/Registro
+            // Si no tenemos sesión válida volvemos a la escena de login y registro
             if (gameSave == null || string.IsNullOrEmpty(gameSave.Uid) || string.IsNullOrEmpty(gameSave.IdToken))
             {
                 SceneManager.LoadScene("LoginRegistro");
                 return;
             }
 
-            // Cargar perfil para saber si es admin y poner bienvenida
+            // Cargamos el perfil para saber si es admin y para poner el texto de bienvenida
             FirestoreCliente.UsuarioPerfil perfil = null;
             try
             {
                 perfil = await gameSave.firestore.GetUsuarioPerfilAsync(gameSave.IdToken, gameSave.Uid);
             }
-            catch { /* si falla, seguimos */ }
+            catch
+            {
+                // Si falla seguimos con el flujo normal y tratamos el usuario como no admin
+            }
 
+            // Si tenemos perfil ponemos el nombre del usuario en pantalla
             if (txtBienvenida && perfil != null)
                 txtBienvenida.text = $"¡Qué dise er máquina, {perfil.nombreUsuario}!";
 
+            // Determinamos si el usuario es admin según el perfil
             bool esAdmin = perfil != null && perfil.esAdmin;
 
-            // Panel Admin o Usuario según rol
+            // Activamos el panel correspondiente según el rol
             if (panelAdmin) panelAdmin.SetActive(esAdmin);
             if (panelUsuario) panelUsuario.SetActive(!esAdmin);
 
-            // ===== BOTONES USUARIO =====
+            // Botones del panel de usuario normal
 
             if (btnNuevaPartida)
                 btnNuevaPartida.onClick.AddListener(async () =>
                 {
+                    // Mostramos un texto para que el usuario sepa lo que estamos haciendo
                     if (txtListado) txtListado.text = "Creando nueva partida...";
 
                     try
                     {
-                        // 1) BORRAR partida anterior (si existe)
+                        // Borramos la partida anterior si existía para empezar de cero
                         await gameSave.firestore.EliminarPartidaAsync(gameSave.IdToken, gameSave.Uid);
                     }
                     catch
                     {
-                        // Si no existe, da igual (404)
+                        // Si no existe la partida anterior no pasa nada y seguimos
                     }
 
-                    // 2) Entrar al juego
+                    // Entramos al juego
                     SceneManager.LoadScene("Juego");
                 });
-
 
             if (btnCargarPartida)
                 btnCargarPartida.onClick.AddListener(async () =>
                 {
+                    // Avisamos que estamos cargando datos
                     if (txtListado) txtListado.text = "Cargando...";
+
                     try
                     {
+                        // Cargamos la partida del usuario y saltamos a la escena guardada
                         var p = await gameSave.CargarAsync();
                         SceneManager.LoadScene(p.datosJugador.nombreEscena);
                     }
                     catch (Exception ex)
                     {
+                        // Si falla mostramos el error en pantalla
                         if (txtListado) txtListado.text = "Error cargar: " + ex.Message;
                     }
                 });
@@ -99,35 +109,37 @@ public class MenuPrincipalUI : MonoBehaviour
             if (btnCerrarSesion)
                 btnCerrarSesion.onClick.AddListener(() =>
                 {
+                    // Cerramos la sesión local y volvemos al login
                     gameSave.SignOutLocal();
                     SceneManager.LoadScene("LoginRegistro");
                 });
 
-            // ===== BOTONES ADMIN =====
+            // Botones del panel admin
 
-            // UN SOLO BOTÓN:
-            // - Si inputUid está vacío => lista usuarios (UID + email + nombre)
-            // - Si inputUid tiene UID => muestra la partida de ese UID
+            // Usamos un solo botón con doble comportamiento
+            // Si el input está vacío listamos usuarios
+            // Si el input tiene un uid mostramos la partida de ese uid
             if (btnListarPartidas)
                 btnListarPartidas.onClick.AddListener(async () =>
                 {
                     try
                     {
-                        // 1) Leer UID
+                        // Leemos el uid del input si existe
                         var uid = inputUid ? inputUid.text.Trim() : "";
 
-                        // 2) Si el texto es el placeholder o está vacío -> lo tratamos como vacío
+                        // Si el texto es placeholder o está vacío lo tratamos como vacío
                         var uidLower = uid.ToLower();
                         if (string.IsNullOrWhiteSpace(uid) || uidLower.Contains("introduce") || uidLower.Contains("enter"))
                             uid = "";
 
-                        // 3) Si hay UID -> mostrar partida de ese UID
+                        // Si hay uid mostramos la partida de ese uid
                         if (!string.IsNullOrEmpty(uid))
                         {
                             if (txtListado) txtListado.text = "Cargando partida del UID...";
 
                             var p = await gameSave.firestore.CargarPartidaAsync(gameSave.IdToken, uid);
 
+                            // Pintamos un resumen de la partida en el texto del panel
                             if (txtListado)
                             {
                                 txtListado.text =
@@ -141,45 +153,52 @@ public class MenuPrincipalUI : MonoBehaviour
                             return;
                         }
 
-                        // 4) Si NO hay UID -> listar usuarios
+                        // Si no hay uid listamos usuarios
                         if (txtListado) txtListado.text = "Listando usuarios...";
                         var listaUsuarios = await gameSave.firestore.ListarUsuariosAsync(gameSave.IdToken, 200);
 
+                        // Mostramos nombres de usuario sin repetir y sin vacíos
                         if (txtListado)
                             txtListado.text = string.Join("\n", listaUsuarios
                                 .Select(u => u.perfil.nombreUsuario)
                                 .Where(n => !string.IsNullOrWhiteSpace(n))
                                 .Distinct()
                             );
-
-
                     }
                     catch (System.Exception ex)
                     {
+                        // Si falla mostramos el error en el panel
                         if (txtListado) txtListado.text = "Error: " + ex.Message;
                     }
                 });
 
-
-            // Eliminar partida por UID escrito en el input
             if (btnEliminarUID)
                 btnEliminarUID.onClick.AddListener(async () =>
                 {
+                    // Cogemos el uid escrito en el input
                     var uid = inputUid ? inputUid.text.Trim() : "";
+
+                    // Si viene vacío no hacemos nada y avisamos
                     if (string.IsNullOrEmpty(uid))
                     {
                         if (txtListado) txtListado.text = "UID vacío.";
                         return;
                     }
 
+                    // Avisamos que estamos eliminando
                     if (txtListado) txtListado.text = "Eliminando partida...";
+
                     try
                     {
+                        // Eliminamos la partida del uid indicado
                         await gameSave.firestore.EliminarPartidaAsync(gameSave.IdToken, uid);
-                        if (txtListado) txtListado.text = $"Partida borrada ✅ (UID: {uid})";
+
+                        // Confirmamos el borrado en pantalla
+                        if (txtListado) txtListado.text = $"Partida borrada (UID: {uid})";
                     }
                     catch (Exception ex)
                     {
+                        // Si falla mostramos el error en el panel
                         if (txtListado) txtListado.text = "Error borrar partida: " + ex.Message;
                     }
                 });
@@ -187,12 +206,14 @@ public class MenuPrincipalUI : MonoBehaviour
             if (btnCerrarSesionAdmin)
                 btnCerrarSesionAdmin.onClick.AddListener(() =>
                 {
+                    // Cerramos la sesión local y volvemos al login
                     gameSave.SignOutLocal();
                     SceneManager.LoadScene("LoginRegistro");
                 });
         }
         catch (Exception ex)
         {
+            // Si algo revienta al iniciar lo dejamos registrado y avisamos por pantalla si podemos
             Debug.LogError("MenuPrincipalUI.Start fallo: " + ex);
             if (txtListado) txtListado.text = "Error en Menú: " + ex.Message;
         }

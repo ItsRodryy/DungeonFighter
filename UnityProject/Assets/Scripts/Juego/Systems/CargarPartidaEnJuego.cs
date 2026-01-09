@@ -1,51 +1,57 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Threading.Tasks;
 using DungeonFighter.Combat;
 
+// Al entrar en Juego intentamos cargar y aplicar la partida guardada
 public class CargarPartidaEnJuego : MonoBehaviour
 {
-    [Tooltip("Si está activo, al entrar en Juego intenta cargar y aplicar la partida.")]
+    [Tooltip("Si está activo al entrar en Juego intentamos cargar y aplicar la partida")]
     public bool autoCargarAlEntrar = true;
 
     async void Start()
     {
+        // Si desactivamos autocarga no hacemos nada
         if (!autoCargarAlEntrar) return;
 
-        // Solo tiene sentido en la escena Juego
+        // Solo tiene sentido dentro de la escena Juego
         if (SceneManager.GetActiveScene().name.Trim().ToLower() != "juego")
             return;
 
+        // Buscamos el servicio de guardado y comprobamos que haya sesión
         var gameSave = Object.FindFirstObjectByType<GameSaveServicio>();
         if (gameSave == null || string.IsNullOrEmpty(gameSave.Uid) || string.IsNullOrEmpty(gameSave.IdToken))
             return;
 
-        // Encuentra jugador
+        // Buscamos el jugador por tag
         var playerGO = GameObject.FindGameObjectWithTag("Player");
         if (!playerGO) return;
 
+        // Cogemos el componente de vida para aplicar vida cargada
         var hp = playerGO.GetComponent<PlayerHealth>();
         if (!hp) return;
 
         try
         {
+            // Cargamos desde Firestore la partida del usuario
             var p = await gameSave.CargarAsync();
 
-            // Aplicar posición
-            playerGO.transform.position = new Vector3(p.datosJugador.posX, p.datosJugador.posY, playerGO.transform.position.z);
+            // Aplicamos posición manteniendo la z actual
+            playerGO.transform.position = new Vector3(
+                p.datosJugador.posX,
+                p.datosJugador.posY,
+                playerGO.transform.position.z
+            );
 
-            // Aplicar vida
+            // Aplicamos vida y vida máxima cargadas
             hp.AplicarCarga(p.datosJugador.vida, p.datosJugador.vidaMaxima);
 
-            // UI
+            // Mostramos un mensaje si tenemos UI
             if (JuegoUI.Instance != null)
-                JuegoUI.Instance.ShowMessage("Partida cargada ✅");
-
+                JuegoUI.Instance.ShowMessage("Partida cargada");
         }
         catch
         {
-            // Si no existe documento, Firestore devuelve error => ignoramos
-            // (Ej: usuario sin partida guardada aún)
+            // Si no existe documento o falla la carga ignoramos y seguimos jugando normal
         }
     }
 }

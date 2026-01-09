@@ -1,57 +1,50 @@
 ﻿using UnityEngine;
-using DungeonFighter.Combat;   // Para PlayerHealth
+using DungeonFighter.Combat;
 
+// Controlamos un cofre que al abrir cura al jugador a vida completa
 public class ChestHealFullHP : MonoBehaviour
 {
-    // Animator del cofre (controla la animación de abrir).
     public Animator anim;
-
-    // Tecla para interactuar con el cofre (configurable en Inspector).
     public KeyCode key = KeyCode.E;
 
-    // True mientras el cofre esté bloqueado (enemigos vivos).
     public bool locked = true;
 
-    // True cuando el cofre ya se ha abierto una vez.
     bool opened;
 
-    // Referencia al PlayerHealth del jugador que está dentro del trigger.
     PlayerHealth player;
 
-    // Referencia al texto "Presiona E para abrir" (hijo del cofre).
     public GameObject pressEPrompt;
 
     void Awake()
     {
-        // Si no se ha asignado el Animator a mano, lo cogemos del mismo objeto.
+        // Cogemos Animator si no lo asignamos a mano
         if (!anim) anim = GetComponent<Animator>();
 
-        // Asegurarnos de que el texto empieza oculto.
+        // Ocultamos el texto al iniciar
         if (pressEPrompt) pressEPrompt.SetActive(false);
     }
 
-    // Llamado desde el RoomChallengeController cuando todos los enemigos han muerto.
     public void Unlock()
     {
+        // Quitamos el bloqueo cuando la sala se limpia
         locked = false;
-        Debug.Log("Cofre desbloqueado: ya se puede abrir.");
-        // No mostramos aún nada aquí: lo gestiona Update cuando el jugador esté cerca.
+        Debug.Log("Cofre desbloqueado ya se puede abrir");
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        // Guardamos la referencia al jugador cuando entra en el área del cofre.
+        // Detectamos al jugador dentro del área del cofre
         if (!other.CompareTag("Player")) return;
 
         player = other.GetComponentInParent<PlayerHealth>();
 
-        // Actualizar visibilidad del texto al entrar.
+        // Actualizamos el texto según estado
         UpdatePromptVisibility();
     }
 
     void OnTriggerExit2D(Collider2D other)
     {
-        // Borramos la referencia cuando el jugador sale del área.
+        // Limpiamos la referencia cuando el jugador sale
         if (!other.CompareTag("Player")) return;
 
         var hp = other.GetComponentInParent<PlayerHealth>();
@@ -60,32 +53,32 @@ public class ChestHealFullHP : MonoBehaviour
             player = null;
         }
 
-        // Al salir del trigger, ocultar el texto.
+        // Ocultamos texto al salir
         UpdatePromptVisibility();
     }
 
     void Update()
     {
-        // Control de visibilidad del texto en cada frame
+        // Vamos actualizando el prompt para que sea consistente
         UpdatePromptVisibility();
 
-        // Si ya se abrió, no hace nada más.
+        // Si ya lo abrimos no hacemos nada más
         if (opened) return;
 
-        // Si sigue bloqueado por enemigos vivos, no se puede abrir.
+        // Si está bloqueado no se puede abrir
         if (locked) return;
 
-        // Si no hay jugador dentro del trigger, no podemos interactuar.
+        // Si no hay jugador cerca no podemos interactuar
         if (!player) return;
 
-        // Comprobamos la tecla de interacción:
+        // Comprobamos pulsación de tecla de interacción
         bool pressed =
             Input.GetKeyDown(key) ||
-            Input.GetKeyDown(KeyCode.E);   // por si en el inspector cambias la tecla sin querer
+            Input.GetKeyDown(KeyCode.E);
 
         if (pressed)
         {
-            // 🔥 SI ES EL COFRE FINAL (Chest3), HACEMOS VICTORIA
+            // Si este cofre es el final lanzamos victoria y cortamos el flujo normal
             var final = GetComponent<ChestFinalWin>();
             if (final != null)
             {
@@ -96,10 +89,10 @@ public class ChestHealFullHP : MonoBehaviour
                     anim.SetTrigger("Open");
 
                 final.LanzarVictoria();
-                return; // ⬅️ MUY IMPORTANTE: no ejecutar el código normal
+                return;
             }
 
-            // 🟢 COFRE NORMAL (Chest1 / Chest2)
+            // Cofre normal curamos a tope
             opened = true;
 
             UpdatePromptVisibility();
@@ -111,21 +104,16 @@ public class ChestHealFullHP : MonoBehaviour
 
             if (JuegoUI.Instance != null)
             {
-                JuegoUI.Instance.ShowMessage("VIDA RESTAURADA AL MÁXIMO");
+                JuegoUI.Instance.ShowMessage("VIDA RESTAURADA AL MAXIMO");
             }
         }
-
     }
 
-    // Muestra/oculta el texto de "Presiona E" según estado actual
     void UpdatePromptVisibility()
     {
         if (!pressEPrompt) return;
 
-        // Solo queremos ver el texto cuando:
-        //  - el cofre NO está abierto
-        //  - el cofre está desbloqueado
-        //  - el jugador está dentro del trigger
+        // Mostramos el texto solo si no está abierto no está bloqueado y el jugador está dentro
         bool canOpen = !opened && !locked && (player != null);
 
         pressEPrompt.SetActive(canOpen);

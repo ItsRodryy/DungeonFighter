@@ -481,7 +481,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d86948aed51e70342b1f4ba832918774, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 2
+  damage: 3
 --- !u!212 &66039394
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -796,7 +796,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d86948aed51e70342b1f4ba832918774, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 2
+  damage: 3
 --- !u!212 &106571472
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1685,7 +1685,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d86948aed51e70342b1f4ba832918774, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 2
+  damage: 3
 --- !u!212 &244527519
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -5183,7 +5183,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d86948aed51e70342b1f4ba832918774, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 2
+  damage: 5
 --- !u!212 &1056192021
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -6069,7 +6069,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d86948aed51e70342b1f4ba832918774, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 2
+  damage: 3
 --- !u!212 &1218752843
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -16622,7 +16622,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d86948aed51e70342b1f4ba832918774, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 2
+  damage: 5
 --- !u!212 &1509583597
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -32908,7 +32908,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d86948aed51e70342b1f4ba832918774, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 2
+  damage: 3
 --- !u!212 &1787932649
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -33441,7 +33441,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d86948aed51e70342b1f4ba832918774, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 2
+  damage: 3
 --- !u!212 &1870664108
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -34743,7 +34743,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d80245f0bf31cb4b91c14ff32716d4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHP: 20
+  maxHP: 40
   gameOverDelay: 1
 --- !u!1001 &6855497398715794882
 PrefabInstance:

@@ -2,21 +2,20 @@
 
 namespace DungeonFighter.Combat
 {
+    // Aplicamos daño cuando la hitbox del jugador toca un enemigo
     public class PlayerMeleeDamage : MonoBehaviour
     {
-        // Daño que hace el golpe cuerpo a cuerpo del jugador.
         public int damage = 1;
 
-        // Cuando la hitbox del jugador entra en contacto con otro collider.
         private void OnTriggerEnter2D(Collider2D other)
         {
-            // Solo nos interesa si el otro objeto tiene tag "Enemy".
+            // Solo nos interesa si el otro objeto es un enemigo
             if (other.CompareTag("Enemy"))
             {
-                // Buscamos EnemyHealth en el padre (el collider puede estar en un hijo).
+                // Buscamos EnemyHealth en el padre por si el collider está en un hijo
                 var hp = other.GetComponentInParent<EnemyHealth>();
 
-                // Si tiene EnemyHealth, aplicamos el daño.
+                // Si existe aplicamos daño
                 if (hp)
                 {
                     hp.TakeDamage(damage, transform.position);
